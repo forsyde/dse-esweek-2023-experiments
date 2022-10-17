@@ -51,7 +51,7 @@ for plat in range(desyde_min_plat, desyde_max_plat + 1):
     series_bottom = desyde_quantiles.loc[plat, :, quantiles[0]]
     ax.plot(series_median.index, series_median[' runtime'] / 1000.0, linestyle='--', marker='.', linewidth=0.8)
     ax.set_xlim(desyde_min_actors, desyde_max_actors)
-    ax.set_ylim(desyde_min_runtime_in_secs, desyde_max_runtime_in_secs)
+    # ax.set_ylim(desyde_min_runtime_in_secs, desyde_max_runtime_in_secs)
     # ax.set_yticks(range(0, ymax + 1))
     ax.set_xticks(range(desyde_min_actors, desyde_max_actors + 1))
     ax.grid(True, axis='both')
@@ -71,7 +71,7 @@ for plat in range(idesyde_min_plat, idesyde_max_plat + 1):
     series_bottom = idesyde_quantiles.loc[plat, :, quantiles[0]]
     ax.plot(series_median.index, series_median[' runtime'] / 1000.0, linestyle='--', marker='.', linewidth=0.8)
     ax.set_xlim(idesyde_min_actors, idesyde_max_actors)
-    ax.set_ylim(idesyde_min_runtime_in_secs, idesyde_max_runtime_in_secs)
+    # ax.set_ylim(idesyde_min_runtime_in_secs, idesyde_max_runtime_in_secs)
     # ax.set_yticks(range(0, ymax + 1))
     ax.set_xticks(range(idesyde_min_actors, idesyde_max_actors + 1))
     ax.grid(True, axis='both')

@@ -33,33 +33,29 @@ def runAll(): Unit = {
         java.nio.file.Files.createDirectories(desydeOutput.toNIO)
         java.nio.file.Files.createDirectories(desydeOutputOut.toNIO)
         java.nio.file.Files.createDirectories(idesydeOutput.toNIO)
-        if (Files.exists((expFolder / "idesyde_output.log").toNIO)) {
-            if (Files.lines((expFolder / "idesyde_output.log").toNIO).noneMatch(l => l.contains("Finished exploration"))) {
-                val beforeIdesyde = LocalDateTime.now()
-                (Seq(
-                    "java", "-jar",
-                    idesydeBin,
-                    "-o", idesydeOutput.toString(),
-                    "--solutions-limit", "100",
-                    "--log", (expFolder / "idesyde_output.log").toString(),
-                    (expFolder / "idesyde_input.fiodl").toString()
-                    )).!
-                val afterIdesyde = LocalDateTime.now()
-                val elapsed = ChronoUnit.MILLIS.between(beforeIdesyde, afterIdesyde)
-                Files.writeString(idesydeBenchmark, s"$cores, $actors, $exp, $beforeIdesyde, $afterIdesyde, $elapsed\n", StandardOpenOption.APPEND)
-            }
-        }
-        if (Files.exists((expFolder / "desyde_output" / "output.log").toNIO)) {
-            if (Files.lines((expFolder / "desyde_output" / "output.log").toNIO).noneMatch(l => l.contains("End of exploration"))) {
-                val beforeDesyde = LocalDateTime.now()
-                (Seq(
-                    desydeBin,
-                    "--config", (expFolder / "config.cfg").toString()
+        if (!Files.exists((expFolder / "idesyde_output.log").toNIO) || Files.lines((expFolder / "idesyde_output.log").toNIO).noneMatch(l => l.contains("Finished exploration"))) {
+            val beforeIdesyde = LocalDateTime.now()
+            (Seq(
+                "java", "-jar",
+                idesydeBin,
+                "-o", idesydeOutput.toString(),
+                "--solutions-limit", "100",
+                "--log", (expFolder / "idesyde_output.log").toString(),
+                (expFolder / "idesyde_input.fiodl").toString()
                 )).!
-                val afterDesyde = LocalDateTime.now()
-                val elapsedDesyde = ChronoUnit.MILLIS.between(beforeDesyde, afterDesyde)
-                Files.writeString(desydeBenchmark, s"$cores, $actors, $exp, $beforeDesyde, $afterDesyde, $elapsedDesyde\n", StandardOpenOption.APPEND)
-            }
+            val afterIdesyde = LocalDateTime.now()
+            val elapsed = ChronoUnit.MILLIS.between(beforeIdesyde, afterIdesyde)
+            Files.writeString(idesydeBenchmark, s"$cores, $actors, $exp, $beforeIdesyde, $afterIdesyde, $elapsed\n", StandardOpenOption.APPEND)
+        }
+        if (!Files.exists((expFolder / "desyde_output" / "output.log").toNIO) || Files.lines((expFolder / "desyde_output" / "output.log").toNIO).noneMatch(l => l.contains("End of exploration"))) {
+            val beforeDesyde = LocalDateTime.now()
+            (Seq(
+                desydeBin,
+                "--config", (expFolder / "config.cfg").toString()
+            )).!
+            val afterDesyde = LocalDateTime.now()
+            val elapsedDesyde = ChronoUnit.MILLIS.between(beforeDesyde, afterDesyde)
+            Files.writeString(desydeBenchmark, s"$cores, $actors, $exp, $beforeDesyde, $afterDesyde, $elapsedDesyde\n", StandardOpenOption.APPEND)
         }
     }
 }
