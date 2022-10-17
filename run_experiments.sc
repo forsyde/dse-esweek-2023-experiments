@@ -33,8 +33,8 @@ def runAll(): Unit = {
         java.nio.file.Files.createDirectories(desydeOutput.toNIO)
         java.nio.file.Files.createDirectories(desydeOutputOut.toNIO)
         java.nio.file.Files.createDirectories(idesydeOutput.toNIO)
-        if (!Files.exists((expFolder / "idesyde_output.log").toNIO)) {
-            if (!Files.lines((expFolder / "idesyde_output.log").toNIO).anyMatch(l => l.contains("Finished exploration"))) {
+        if (Files.exists((expFolder / "idesyde_output.log").toNIO)) {
+            if (Files.lines((expFolder / "idesyde_output.log").toNIO).noneMatch(l => l.contains("Finished exploration"))) {
                 val beforeIdesyde = LocalDateTime.now()
                 (Seq(
                     "java", "-jar",
@@ -49,8 +49,8 @@ def runAll(): Unit = {
                 Files.writeString(idesydeBenchmark, s"$cores, $actors, $exp, $beforeIdesyde, $afterIdesyde, $elapsed\n", StandardOpenOption.APPEND)
             }
         }
-        if (!Files.exists((expFolder / "desyde_output" / "output.log").toNIO)) {
-            if (!Files.lines((expFolder / "desyde_output" / "output.log").toNIO).anyMatch(l => l.contains("End of exploration"))) {
+        if (Files.exists((expFolder / "desyde_output" / "output.log").toNIO)) {
+            if (Files.lines((expFolder / "desyde_output" / "output.log").toNIO).noneMatch(l => l.contains("End of exploration"))) {
                 val beforeDesyde = LocalDateTime.now()
                 (Seq(
                     desydeBin,
