@@ -44,10 +44,10 @@ def runAll(): Unit = {
                     "--log", (expFolder / "idesyde_output.log").toString(),
                     (expFolder / "idesyde_input.fiodl").toString()
                     )).!
-                }
                 val afterIdesyde = LocalDateTime.now()
                 val elapsed = ChronoUnit.MILLIS.between(beforeIdesyde, afterIdesyde)
                 Files.writeString(idesydeBenchmark, s"$cores, $actors, $exp, $beforeIdesyde, $afterIdesyde, $elapsed\n", StandardOpenOption.APPEND)
+            }
         }
         if (!Files.exists((expFolder / "desyde_output" / "output.log").toNIO)) {
             if (!Files.lines((expFolder / "desyde_output" / "output.log").toNIO).anyMatch(l => l.contains("End of exploration"))) {
