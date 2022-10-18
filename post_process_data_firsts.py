@@ -1,15 +1,19 @@
 import csv
+import pathlib
 
 def plot_firsts():
-    idesyde_data = pd.read_csv('idesyde_benchmark.csv')
-    desyde_data = pd.read_csv("desyde_benchmark.csv")
+    # idesyde_data = pd.read_csv('idesyde_benchmark.csv')
+    # desyde_data = pd.read_csv("desyde_benchmark.csv")
 
-    desyde_firsts = desyde_data.groupby(['plat', ' actors', ' exp'])[' start'].max()
-    idesyde_firsts = idesyde_data.groupby(['plat', ' actors', ' exp'])[' start'].max()
+    # desyde_firsts = desyde_data.groupby(['plat', ' actors', ' exp'])[' start'].max()
+    # idesyde_firsts = idesyde_data.groupby(['plat', ' actors', ' exp'])[' start'].max()
 
     with open('idesyde_firsts_benchmark.csv') as idesyde_f:
         writer = csv.writer(idesyde_f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         writer.writerow(['plat', 'actors', 'exp', 'start', 'first', 'duration'])
+        root = pathlib.Path("sdfComparison")
+        for folder in root.glob("**/hsdf_*"):
+            print(folder.name)
         for (plat, actors, exp) in idesyde_firsts.index:
             output_folder = pathlib.Path('sdfComparison') / "plat_{0}_actors_{1}".format(plat, actors) / "hsdf_{0}".format(exp) / "idesyde_output"
             start_time = datetime.fromisoformat(idesyde_firsts.loc[plat, actors, exp].strip()[:26])
