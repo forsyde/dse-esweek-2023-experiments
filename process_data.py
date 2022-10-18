@@ -1,5 +1,5 @@
 import argparse
-import datetime
+from datetime import datetime
 import pathlib
 import os
 
@@ -119,9 +119,9 @@ def plot_firsts():
 
     for (plat, actors, exp) in idesyde_firsts.index:
         output_folder = pathlib.Path('sdfComparison') / "plat_{0}_actors_{1}".format(plat, actors) / "hsdf_{0}".format(exp) / "idesyde_output"
-        start_time = datetime.datetime.fromisoformat(idesyde_firsts.loc[plat, actors, exp])
+        start_time = datetime.fromisoformat(idesyde_firsts.loc[plat, actors, exp])
         first_solution = min(output_folder.glob("solution*"), key=lambda f: f.stat().st_mtime)
-        first_found = datetime.datetime.fromtimestamp(first_solution.stat().st_mtime)
+        first_found = datetime.fromtimestamp(first_solution.stat().st_mtime)
         duration = first_found - start_time
         print(duration)
 
