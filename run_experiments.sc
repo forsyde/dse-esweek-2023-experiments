@@ -20,7 +20,7 @@ val desydeBenchmark = Paths.get("desyde_benchmark.csv")
 def runAll(): Unit = {
     if (!Files.exists(idesydeBenchmark)) {
         Files.createFile(idesydeBenchmark)
-        Files.writeString(idesydeBenchmark, "plat, actors, exp, start, stop, runtime, first, runtime_first\n", StandardOpenOption.APPEND)
+        Files.writeString(idesydeBenchmark, "plat, actors, exp, start, first, runtime_first, stop, runtime\n", StandardOpenOption.APPEND)
     }
     if (!Files.exists(desydeBenchmark)) {
         Files.createFile(desydeBenchmark)
@@ -51,7 +51,7 @@ def runAll(): Unit = {
             val elapsed = ChronoUnit.MILLIS.between(beforeIdesyde, afterIdesyde)
             val firstFound = LocalDateTime.ofInstant(attrs.lastModifiedTime().toInstant(), ZoneId.systemDefault()) 
             val firstElapsed = ChronoUnit.MILLIS.between(beforeIdesyde, firstFound)
-            Files.writeString(idesydeBenchmark, s"$cores, $actors, $exp, $beforeIdesyde, $firstElapsed, $afterIdesyde, $elapsed, $firstFound, $firstElapsed\n", StandardOpenOption.APPEND)
+            Files.writeString(idesydeBenchmark, s"$cores, $actors, $exp, $beforeIdesyde, $firstFound, $firstElapsed, $afterIdesyde, $elapsed\n", StandardOpenOption.APPEND)
         }
         if (!Files.exists((expFolder / "desyde_output" / "output.log").toNIO) || Files.lines((expFolder / "desyde_output" / "output.log").toNIO).noneMatch(l => l.contains("End of exploration"))) {
             val beforeDesyde = LocalDateTime.now()
