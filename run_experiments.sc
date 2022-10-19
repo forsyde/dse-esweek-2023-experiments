@@ -7,6 +7,8 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.io.File
 import java.nio.file.StandardOpenOption
+import java.nio.file.attribute.BasicFileAttributes
+import java.time.ZoneId
 
 val desydeBin = (os.pwd / "desyde").toString()
 val idesydeBin = (os.pwd / "idesyde.jar").toString()
@@ -18,7 +20,7 @@ val desydeBenchmark = Paths.get("desyde_benchmark.csv")
 def runAll(): Unit = {
     if (!Files.exists(idesydeBenchmark)) {
         Files.createFile(idesydeBenchmark)
-        Files.writeString(idesydeBenchmark, "plat, actors, exp, start, stop, runtime\n", StandardOpenOption.APPEND)
+        Files.writeString(idesydeBenchmark, "plat, actors, exp, start, stop, runtime, first, runtime_first\n", StandardOpenOption.APPEND)
     }
     if (!Files.exists(desydeBenchmark)) {
         Files.createFile(desydeBenchmark)
@@ -38,14 +40,18 @@ def runAll(): Unit = {
             (Seq(
                 "java", "-jar",
                 idesydeBin,
+                "-v", "DEBUG",
+                "--decision-model", "ChocoSDFToSChedTileHW",
                 "-o", idesydeOutput.toString(),
-                "--solutions-limit", "100",
                 "--log", (expFolder / "idesyde_output.log").toString(),
                 (expFolder / "idesyde_input.fiodl").toString()
                 )).!
+            val attrs = Files.readAttributes((idesydeOutput / "solution_0.fiodl").toNIO, classOf[BasicFileAttributes])
             val afterIdesyde = LocalDateTime.now()
             val elapsed = ChronoUnit.MILLIS.between(beforeIdesyde, afterIdesyde)
-            Files.writeString(idesydeBenchmark, s"$cores, $actors, $exp, $beforeIdesyde, $afterIdesyde, $elapsed\n", StandardOpenOption.APPEND)
+            val firstFound = LocalDateTime.ofInstant(attrs.lastModifiedTime().toInstant(), ZoneId.systemDefault()) 
+            val firstElapsed = ChronoUnit.MILLIS.between(beforeIdesyde, firstFound)
+            Files.writeString(idesydeBenchmark, s"$cores, $actors, $exp, $beforeIdesyde, $firstElapsed, $afterIdesyde, $elapsed, $firstFound, $firstElapsed\n", StandardOpenOption.APPEND)
         }
         if (!Files.exists((expFolder / "desyde_output" / "output.log").toNIO) || Files.lines((expFolder / "desyde_output" / "output.log").toNIO).noneMatch(l => l.contains("End of exploration"))) {
             val beforeDesyde = LocalDateTime.now()
