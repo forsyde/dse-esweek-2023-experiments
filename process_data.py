@@ -79,6 +79,7 @@ def plot_quantiles():
         ax.set_xlim(desyde_min_actors, desyde_max_actors)
         # ax.set_ylim(desyde_min_runtime_in_secs, desyde_max_runtime_in_secs)
         # ax.set_yticks(range(0, ymax + 1))
+        ax.set_yscale('log')
         ax.set_xticks(range(desyde_min_actors, desyde_max_actors + 1))
         ax.grid(True, axis='both')
         ax.set_ylabel('Runtime [s]')
@@ -99,6 +100,7 @@ def plot_quantiles():
         ax.set_xlim(idesyde_min_actors, idesyde_max_actors)
         # ax.set_ylim(idesyde_min_runtime_in_secs, idesyde_max_runtime_in_secs)
         # ax.set_yticks(range(0, ymax + 1))
+        ax.set_yscale('log')
         ax.set_xticks(range(idesyde_min_actors, idesyde_max_actors + 1))
         ax.grid(True, axis='both')
         ax.set_ylabel('Runtime [s]')
@@ -135,7 +137,6 @@ def plot_firsts():
         row[' first'] - datetime.fromisoformat(row[' start'][:27].strip())
     ).total_seconds(), axis=1)
     desyde_filtered = desyde_filtered.loc[desyde_filtered[' first'] != pd.NaT]
-    print(desyde_filtered)
     
     desyde_min_plat = desyde_filtered['plat'].min()
     desyde_max_plat = desyde_filtered['plat'].max()
@@ -190,6 +191,7 @@ def plot_firsts():
         ax.set_xlim(idesyde_min_actors, idesyde_max_actors)
         # ax.set_ylim(idesyde_min_runtime_in_secs, idesyde_max_runtime_in_secs)
         # ax.set_yticks(range(0, ymax + 1))
+        # ax.set_yscale('log')
         ax.set_xticks(range(idesyde_min_actors, idesyde_max_actors + 1))
         ax.grid(True, axis='both')
         ax.set_ylabel('Runtime [s]')
