@@ -34,8 +34,11 @@ val maxNumExperiments1 = 100
 def experiments(actors: Int)(cores: Int) =
   1 to Math.min(maxNumExperiments1, actors * cores)
 
-val actorRange2 = (2 to 10) ++ (10 to 100 by 2) ++ (100 to 1000 by 10)
+val actorRange2 = (2 to 10) ++ (12 to 100 by 2)
 val coreRange2 = (2 to 16)
+
+val actorRange3 = actorRange2 ++ (105 to 1000 by 5)
+val coreRange3 = coreRange2 ++ (20 to 64 by 4)
 
 val sdf3Gen =
   os.pwd / "sdf3" / "build" / "release" / "Linux" / "bin" / "sdf3generate-sdf"
@@ -506,32 +509,38 @@ def generate(): Unit = {
     }
   }
 
-    for (actors <- actorRange2) {
-        val appFolder = os.pwd / "sdfScalability" / s"actors_${actors}"
-        val sdf3HSDFGen = getSdfGenerationInput(actors, actors)
-        val sdfGenFile = (appFolder / "sdf3_hsdf_gen.xml").toNIO
-        val sdfAppFile =
-        (appFolder / "applications_input.sdf3.xml").toNIO
-        os.makeDir.all(appFolder)
-        java.nio.file.Files.writeString(sdfGenFile, sdf3HSDFGen, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
-        if (!java.nio.file.Files.exists(sdfAppFile)) {
-            Seq(
-                sdf3Gen.toString(),
-                "--settings",
-                sdfGenFile.toString(),
-                "--output",
-                sdfAppFile.toString()
-                ).!
-        }
-        val sdfApp = modelHandler.loadModel(sdfAppFile)
-        for (cores <- coreRange2) {
-            println(s"making 2: $actors, $cores")
-            val combinationFolder = appFolder / s"plat_${cores}"
-            val idesydePlatform = generate_platform.makeTDMASingleBusPlatform(cores, 32L)
-            val dseProblem = sdfApp.merge(idesydePlatform)
-            val idesydeFullInput = (combinationFolder / "idesyde_input.fiodl").toNIO
-            os.makeDir.all(combinationFolder)
-            modelHandler.writeModel(dseProblem, idesydeFullInput)
-        }
+  for (actors <- actorRange2) {
+    val appFolder = os.pwd / "sdfScalability" / s"actors_${actors}"
+    val sdf3HSDFGen = getSdfGenerationInput(actors, actors)
+    val sdfGenFile = (appFolder / "sdf3_hsdf_gen.xml").toNIO
+    val sdfAppFile =
+      (appFolder / "applications_input.sdf3.xml").toNIO
+    os.makeDir.all(appFolder)
+    java.nio.file.Files.writeString(
+      sdfGenFile,
+      sdf3HSDFGen,
+      java.nio.file.StandardOpenOption.CREATE,
+      java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
+    )
+    if (!java.nio.file.Files.exists(sdfAppFile)) {
+      Seq(
+        sdf3Gen.toString(),
+        "--settings",
+        sdfGenFile.toString(),
+        "--output",
+        sdfAppFile.toString()
+      ).!
     }
+    val sdfApp = modelHandler.loadModel(sdfAppFile)
+    for (cores <- coreRange2) {
+      println(s"making 2: $actors, $cores")
+      val combinationFolder = appFolder / s"plat_${cores}"
+      val idesydePlatform =
+        generate_platform.makeTDMASingleBusPlatform(cores, 32L)
+      val dseProblem = sdfApp.merge(idesydePlatform)
+      val idesydeFullInput = (combinationFolder / "idesyde_input.fiodl").toNIO
+      os.makeDir.all(combinationFolder)
+      modelHandler.writeModel(dseProblem, idesydeFullInput)
+    }
+  }
 }

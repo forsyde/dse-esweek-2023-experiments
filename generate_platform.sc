@@ -1,6 +1,6 @@
 import scala.jdk.CollectionConverters._
 
-import $ivy.`io.github.forsyde:forsyde-io-java-core:0.5.17`
+import $ivy.`io.github.forsyde:forsyde-io-java-core:0.6.0`
 
 import forsyde.io.java.drivers.ForSyDeModelHandler
 import forsyde.io.java.core.ForSyDeSystemGraph

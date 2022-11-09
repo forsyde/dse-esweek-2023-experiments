@@ -15,6 +15,7 @@ val desydeBin = (os.pwd / "desyde").toString()
 val idesydeBin = (os.pwd / "idesyde.jar").toString()
 
 val idesydeBenchmark = Paths.get("idesyde_benchmark.csv")
+val idesydeScalBenchmark = Paths.get("idesyde_scal_benchmark.csv")
 val desydeBenchmark = Paths.get("desyde_benchmark.csv")
 
 @main
@@ -96,7 +97,7 @@ def evaluation_1_desyde(): Unit = {
     cores <- generate_experiments.coreRange1;
     exp <- generate_experiments.experiments(actors)(cores)
   ) {
-    println(s"-- Solving combination $actors, $cores, $exp")
+    println(s"-- Solving combination A $actors, P $cores, E $exp")
     val expFolder =
       os.pwd / "sdfComparison" / s"plat_${cores}_actors_${actors}" / s"hsdf_$exp"
     val desydeOutput = expFolder / "desyde_output"
@@ -122,6 +123,70 @@ def evaluation_1_desyde(): Unit = {
       Files.writeString(
         desydeBenchmark,
         s"$cores, $actors, $exp, $beforeDesyde, $afterDesyde, $elapsedDesyde, $firstTime, $elapsedDesydeFirst\n",
+        StandardOpenOption.APPEND
+      )
+    }
+  }
+}
+
+@main
+def evaluation_2_idesyde(): Unit = {
+  if (!Files.exists(idesydeScalBenchmark)) {
+    Files.createFile(idesydeScalBenchmark)
+    Files.writeString(
+      idesydeScalBenchmark,
+      "plat, actors, exp, start, first, runtime_first, stop, runtime\n",
+      StandardOpenOption.APPEND
+    )
+  }
+  for (
+    cores <- generate_experiments.coreRange2;
+    actors <- generate_experiments.actorRange2
+  ) {
+    println(s"-- Solving combination A $actors, P $cores")
+    val expFolder =
+      os.pwd / "sdfScalability" / s"actors_${actors}" / s"plat_${cores}"
+    val idesydeOutput = expFolder / "idesyde_output"
+    java.nio.file.Files.createDirectories(idesydeOutput.toNIO)
+    if (
+      !Files.exists((expFolder / "idesyde_output.log").toNIO) || Files
+        .lines((expFolder / "idesyde_output.log").toNIO)
+        .noneMatch(l => l.contains("Finished exploration"))
+    ) {
+      val beforeIdesyde = LocalDateTime.now()
+      (
+        Seq(
+          "java",
+          "-Xmx24G",
+          "-jar",
+          idesydeBin,
+          "-v",
+          "DEBUG",
+          "--decision-model",
+          "ChocoSDFToSChedTileHW",
+          "--exploration-timeout",
+          "3600",
+          "-o",
+          idesydeOutput.toString(),
+          "--log",
+          (expFolder / "idesyde_output.log").toString(),
+          (expFolder / "idesyde_input.fiodl").toString()
+        )
+      ).!
+      val attrs = Files.readAttributes(
+        (idesydeOutput / "solution_0.fiodl").toNIO,
+        classOf[BasicFileAttributes]
+      )
+      val afterIdesyde = LocalDateTime.now()
+      val elapsed = ChronoUnit.MILLIS.between(beforeIdesyde, afterIdesyde)
+      val firstFound = LocalDateTime.ofInstant(
+        attrs.lastModifiedTime().toInstant(),
+        ZoneId.systemDefault()
+      )
+      val firstElapsed = ChronoUnit.MILLIS.between(beforeIdesyde, firstFound)
+      Files.writeString(
+        idesydeBenchmark,
+        s"$cores, $actors, $beforeIdesyde, $firstFound, $firstElapsed, $afterIdesyde, $elapsed\n",
         StandardOpenOption.APPEND
       )
     }
