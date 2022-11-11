@@ -165,7 +165,7 @@ def evaluation_2_idesyde(): Unit = {
           "--decision-model",
           "ChocoSDFToSChedTileHW",
           "--exploration-timeout",
-          "3600",
+          "1800",
           "-o",
           idesydeOutput.toString(),
           "--log",
@@ -173,22 +173,22 @@ def evaluation_2_idesyde(): Unit = {
           (expFolder / "idesyde_input.fiodl").toString()
         )
       ).!
-      val attrs = Files.readAttributes(
-        (idesydeOutput / "solution_0.fiodl").toNIO,
-        classOf[BasicFileAttributes]
-      )
-      val afterIdesyde = LocalDateTime.now()
-      val elapsed = ChronoUnit.MILLIS.between(beforeIdesyde, afterIdesyde)
-      val firstFound = LocalDateTime.ofInstant(
-        attrs.lastModifiedTime().toInstant(),
-        ZoneId.systemDefault()
-      )
-      val firstElapsed = ChronoUnit.MILLIS.between(beforeIdesyde, firstFound)
-      Files.writeString(
-        idesydeBenchmark,
-        s"$cores, $actors, $beforeIdesyde, $firstFound, $firstElapsed, $afterIdesyde, $elapsed\n",
-        StandardOpenOption.APPEND
-      )
+      // val attrs = Files.readAttributes(
+      //   (idesydeOutput / "solution_0.fiodl").toNIO,
+      //   classOf[BasicFileAttributes]
+      // )
+      // val afterIdesyde = LocalDateTime.now()
+      // val elapsed = ChronoUnit.MILLIS.between(beforeIdesyde, afterIdesyde)
+      // val firstFound = LocalDateTime.ofInstant(
+      //   attrs.lastModifiedTime().toInstant(),
+      //   ZoneId.systemDefault()
+      // )
+      // val firstElapsed = ChronoUnit.MILLIS.between(beforeIdesyde, firstFound)
+      // Files.writeString(
+      //   idesydeBenchmark,
+      //   s"$cores, $actors, $beforeIdesyde, $firstFound, $firstElapsed, $afterIdesyde, $elapsed\n",
+      //   StandardOpenOption.APPEND
+      // )
     }
   }
 }
