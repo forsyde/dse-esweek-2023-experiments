@@ -157,7 +157,7 @@ def evaluation_2_idesyde(): Unit = {
       (
         Seq(
           "java",
-          "-Xmx24G",
+          "-Xmx28G",
           "-jar",
           idesydeBin,
           "-v",
