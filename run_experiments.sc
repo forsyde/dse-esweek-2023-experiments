@@ -163,7 +163,7 @@ def evaluation_2_idesyde(): Unit = {
           "-v",
           "DEBUG",
           "--decision-model",
-          "ChocoSDFToSChedTileHW",
+          "ChocoSDFToSChedTileHW2",
           "--exploration-timeout",
           "1800",
           "-o",
