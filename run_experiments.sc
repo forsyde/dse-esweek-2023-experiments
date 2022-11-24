@@ -27,11 +27,12 @@ def evaluation_1_idesyde(): Unit = {
   for (
     actors <- generate_experiments.actorRange1;
     cores <- generate_experiments.coreRange1;
-    exp <- generate_experiments.experiments(actors)(cores)
+    svr <- generate_experiments.svrMultiplicationRange1;
+    exp <- 1 to generate_experiments.dataPointsPerTuple
   ) {
-    println(s"-- Solving combination $actors, $cores, $exp")
+    println(s"-- Solving combination $actors, $cores, $svr, $exp")
     val expFolder =
-      os.pwd / "sdfComparison" / s"plat_${cores}_actors_${actors}" / s"hsdf_$exp"
+      os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(q * 100).ceil.toInt}" / s"plat_${cores}" / s"exp_$exp"
     val idesydeOutput = expFolder / "idesyde_output"
     java.nio.file.Files.createDirectories(idesydeOutput.toNIO)
     if (
