@@ -14,10 +14,6 @@ import java.time.format.DateTimeFormatter
 val desydeBin = (os.pwd / "desyde").toString()
 val idesydeBin = (os.pwd / "idesyde.jar").toString()
 
-val idesydeBenchmark = Paths.get("idesyde_benchmark.csv")
-val idesydeScalBenchmark = Paths.get("idesyde_scal_benchmark.csv")
-val desydeBenchmark = Paths.get("desyde_benchmark.csv")
-
 @main
 def evaluation_1_idesyde(): Unit = {
   // if (!Files.exists(idesydeBenchmark)) {
@@ -80,18 +76,16 @@ def evaluation_1_idesyde(): Unit = {
   }
 }
 
-val desyedDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-
 @main
 def evaluation_1_desyde(): Unit = {
-  if (!Files.exists(desydeBenchmark)) {
-    Files.createFile(desydeBenchmark)
-    Files.writeString(
-      desydeBenchmark,
-      "plat, actors, exp, start, stop, runtime, first, runtime_first\n",
-      StandardOpenOption.APPEND
-    )
-  }
+  // if (!Files.exists(desydeBenchmark)) {
+  //   Files.createFile(desydeBenchmark)
+  //   Files.writeString(
+  //     desydeBenchmark,
+  //     "plat, actors, exp, start, stop, runtime, first, runtime_first\n",
+  //     StandardOpenOption.APPEND
+  //   )
+  // }
   for (
     actors <- generate_experiments.actorRange1;
     cores <- generate_experiments.coreRange1;
@@ -115,30 +109,30 @@ def evaluation_1_desyde(): Unit = {
         "--config",
         (expFolder / "config.cfg").toString()
       )).!
-      val afterDesyde = LocalDateTime.now()
-      val firstTimeLine = Files.lines((expFolder / "desyde_output" / "output.log").toNIO).filter(s => s.contains("PRESOLVER executing full model - finding 2")).findAny()
-      val firstTime = firstTimeLine.map(s => s.subSequence(0, 19)).map(s => LocalDateTime.parse(s, desyedDateTimeFormatter)).orElse(afterDesyde)
-      val elapsedDesyde = ChronoUnit.MILLIS.between(beforeDesyde, afterDesyde)
-      val elapsedDesydeFirst = ChronoUnit.MILLIS.between(beforeDesyde, firstTime)
-      Files.writeString(
-        desydeBenchmark,
-        s"$cores, $actors, $exp, $beforeDesyde, $afterDesyde, $elapsedDesyde, $firstTime, $elapsedDesydeFirst\n",
-        StandardOpenOption.APPEND
-      )
+      // val afterDesyde = LocalDateTime.now()
+      // val firstTimeLine = Files.lines((expFolder / "desyde_output" / "output.log").toNIO).filter(s => s.contains("PRESOLVER executing full model - finding 2")).findAny()
+      // val firstTime = firstTimeLine.map(s => s.subSequence(0, 19)).map(s => LocalDateTime.parse(s, desyedDateTimeFormatter)).orElse(afterDesyde)
+      // val elapsedDesyde = ChronoUnit.MILLIS.between(beforeDesyde, afterDesyde)
+      // val elapsedDesydeFirst = ChronoUnit.MILLIS.between(beforeDesyde, firstTime)
+      // Files.writeString(
+      //   desydeBenchmark,
+      //   s"$cores, $actors, $exp, $beforeDesyde, $afterDesyde, $elapsedDesyde, $firstTime, $elapsedDesydeFirst\n",
+      //   StandardOpenOption.APPEND
+      // )
     }
   }
 }
 
 @main
 def evaluation_2_idesyde(): Unit = {
-  if (!Files.exists(idesydeScalBenchmark)) {
-    Files.createFile(idesydeScalBenchmark)
-    Files.writeString(
-      idesydeScalBenchmark,
-      "plat, actors, exp, start, first, runtime_first, stop, runtime\n",
-      StandardOpenOption.APPEND
-    )
-  }
+  // if (!Files.exists(idesydeScalBenchmark)) {
+  //   Files.createFile(idesydeScalBenchmark)
+  //   Files.writeString(
+  //     idesydeScalBenchmark,
+  //     "plat, actors, exp, start, first, runtime_first, stop, runtime\n",
+  //     StandardOpenOption.APPEND
+  //   )
+  // }
   for (
     cores <- generate_experiments.coreRange2;
     actors <- generate_experiments.actorRange2
