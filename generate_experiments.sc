@@ -435,7 +435,7 @@ def generate_idesyde_1(): Unit = {
       generate_platform.makeTDMASingleBusPlatform(cores, 32L)
     for (actors <- actorRange1; q <- svrMultiplicationRange1) {
       val sdf3SDFGen = getSdfGenerationInput(actors, (actors * q).ceil.toInt)
-      val appFolder = s"actors_${actors}" / s"svr_${(q*100).toInt}" 
+      val appFolder = rootFolder / s"actors_${actors}" / s"svr_${(q*100).toInt}" 
       val sdfGenFile = (appFolder / "sdf3_gen.xml").toNIO
       os.makeDir.all(appFolder)
       java.nio.file.Files.writeString(
