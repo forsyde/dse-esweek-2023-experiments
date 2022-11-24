@@ -32,7 +32,7 @@ def evaluation_1_idesyde(): Unit = {
   ) {
     println(s"-- Solving combination $actors, $cores, $svr, $exp")
     val expFolder =
-      os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(q * 100).ceil.toInt}" / s"plat_${cores}" / s"exp_$exp"
+      os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).ceil.toInt}" / s"plat_${cores}" / s"exp_$exp"
     val idesydeOutput = expFolder / "idesyde_output"
     java.nio.file.Files.createDirectories(idesydeOutput.toNIO)
     if (
