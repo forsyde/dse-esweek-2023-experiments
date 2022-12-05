@@ -112,25 +112,6 @@ def evaluation_1_desyde(): Unit = {
         "--config",
         (expFolder / "config.cfg").toString()
       )).!
-      <<<<<<< HEAD
-      val afterDesyde = LocalDateTime.now()
-      val firstTimeLine = Files
-        .lines((expFolder / "desyde_output" / "output.log").toNIO)
-        .filter(s => s.contains("PRESOLVER executing full model - finding 2"))
-        .findAny()
-      val firstTime = firstTimeLine
-        .map(s => s.subSequence(0, 19))
-        .map(s => LocalDateTime.parse(s, desyedDateTimeFormatter))
-        .orElse(afterDesyde)
-      val elapsedDesyde = ChronoUnit.MILLIS.between(beforeDesyde, afterDesyde)
-      val elapsedDesydeFirst =
-        ChronoUnit.MILLIS.between(beforeDesyde, firstTime)
-      Files.writeString(
-        desydeBenchmark,
-        s"$cores, $actors, $exp, $beforeDesyde, $afterDesyde, $elapsedDesyde, $firstTime, $elapsedDesydeFirst\n",
-        StandardOpenOption.APPEND
-      )
-      =======
       // val afterDesyde = LocalDateTime.now()
       // val firstTimeLine = Files.lines((expFolder / "desyde_output" / "output.log").toNIO).filter(s => s.contains("PRESOLVER executing full model - finding 2")).findAny()
       // val firstTime = firstTimeLine.map(s => s.subSequence(0, 19)).map(s => LocalDateTime.parse(s, desyedDateTimeFormatter)).orElse(afterDesyde)
@@ -169,7 +150,6 @@ def evaluation_2_idesyde(): Unit = {
         .lines((expFolder / "idesyde_output.log").toNIO)
         .noneMatch(l => l.contains("Finished exploration"))
     ) {
-      val beforeIdesyde = LocalDateTime.now()
       (
         Seq(
           "java",
@@ -205,7 +185,6 @@ def evaluation_2_idesyde(): Unit = {
       //   s"$cores, $actors, $beforeIdesyde, $firstFound, $firstElapsed, $afterIdesyde, $elapsed\n",
       //   StandardOpenOption.APPEND
       // )
-      >>>>>>> ac5fe69755f3970b639be76a0f789a5a627c1b24
     }
   }
 }
