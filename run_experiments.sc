@@ -50,7 +50,8 @@ def evaluation_1_idesyde(): Unit = {
           idesydeBin,
           "-v",
           "DEBUG",
-          "--decision-model",
+          "--exploration-timeout",
+          "432000",
           "ChocoSDFToSChedTileHW",
           "-o",
           idesydeOutput.toString(),
@@ -115,10 +116,17 @@ def evaluation_1_desyde(): Unit = {
         (expFolder / "config.cfg").toString()
       )).!
       val afterDesyde = LocalDateTime.now()
-      val firstTimeLine = Files.lines((expFolder / "desyde_output" / "output.log").toNIO).filter(s => s.contains("PRESOLVER executing full model - finding 2")).findAny()
-      val firstTime = firstTimeLine.map(s => s.subSequence(0, 19)).map(s => LocalDateTime.parse(s, desyedDateTimeFormatter)).orElse(afterDesyde)
+      val firstTimeLine = Files
+        .lines((expFolder / "desyde_output" / "output.log").toNIO)
+        .filter(s => s.contains("PRESOLVER executing full model - finding 2"))
+        .findAny()
+      val firstTime = firstTimeLine
+        .map(s => s.subSequence(0, 19))
+        .map(s => LocalDateTime.parse(s, desyedDateTimeFormatter))
+        .orElse(afterDesyde)
       val elapsedDesyde = ChronoUnit.MILLIS.between(beforeDesyde, afterDesyde)
-      val elapsedDesydeFirst = ChronoUnit.MILLIS.between(beforeDesyde, firstTime)
+      val elapsedDesydeFirst =
+        ChronoUnit.MILLIS.between(beforeDesyde, firstTime)
       Files.writeString(
         desydeBenchmark,
         s"$cores, $actors, $exp, $beforeDesyde, $afterDesyde, $elapsedDesyde, $firstTime, $elapsedDesydeFirst\n",
