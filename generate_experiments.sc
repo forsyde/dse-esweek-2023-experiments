@@ -364,8 +364,8 @@ def generateDSEConfig(expPath: os.Path): String =
        |# search timeout. 0 means infinite. If two values are provided, the
        |# first one specifies the timeout for the first solution, and the
        |# second one for all solutions.
-       |timeout=60000
-       |timeout=60000
+       |timeout=432000
+       |timeout=432000
        |threads=1
        |noGoodDepth=75
        |luby_scale=100
