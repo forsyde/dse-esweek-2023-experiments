@@ -505,6 +505,7 @@ def generate_desyde_1(): Unit = {
         val sdfApp = modelHandler.loadModel(sdfAppFile)
         val dseProblem = sdfApp.merge(idesydePlatform)
         val wcetTable = computeWCETTable(dseProblem)
+        val configString = generateDSEConfig(combinationFolder)
         java.nio.file.Files.writeString(
           desydeFile,
           desydePlatform,
