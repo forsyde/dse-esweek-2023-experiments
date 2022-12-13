@@ -21,7 +21,7 @@ def recompute_idesyde_1(): Unit = {
     }
     Files.writeString(
         idesydeBenchmark,
-        "plat, actors, exp, start, first, runtime_first, last, runtime_last, stop, runtime\n",
+        "plat, actors, svr, exp, start, first, runtime_first, last, runtime_last, stop, runtime\n",
         StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING
     )
     for (
@@ -55,7 +55,7 @@ def recompute_idesyde_1(): Unit = {
            val runtime = ChronoUnit.MILLIS.between(startingTime, endTime)
            Files.writeString(
              idesydeBenchmark,
-             s"$cores, $actors, $exp, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime\n",
+             s"$cores, $actors, ${(svr * 100).toInt}, $exp, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime\n",
              StandardOpenOption.APPEND
            )
        }
@@ -68,7 +68,7 @@ def recompute_desyde_1(): Unit = {
     }
     Files.writeString(
         desydeBenchmark,
-        "plat, actors, exp, start, first, runtime_first, last, runtime_last, stop, runtime\n",
+        "plat, actors, svr, exp, start, first, runtime_first, last, runtime_last, stop, runtime\n",
         StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING
     )
     for (
@@ -102,7 +102,7 @@ def recompute_desyde_1(): Unit = {
            val runtime = ChronoUnit.MILLIS.between(startingTime, endTime)
            Files.writeString(
              desydeBenchmark,
-             s"$cores, $actors, $exp, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime\n",
+             s"$cores, $actors, ${(svr * 100).toInt}, $exp, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime\n",
              StandardOpenOption.APPEND
            )
        }
