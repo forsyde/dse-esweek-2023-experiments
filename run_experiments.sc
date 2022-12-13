@@ -48,6 +48,8 @@ def evaluation_1_idesyde(): Unit = {
           idesydeBin,
           "-v",
           "DEBUG",
+          "--exploration-timeout",
+          "432000",
           "--decision-model",
           "ChocoSDFToSChedTileHW2",
           "-o",
@@ -148,7 +150,6 @@ def evaluation_2_idesyde(): Unit = {
         .lines((expFolder / "idesyde_output.log").toNIO)
         .noneMatch(l => l.contains("Finished exploration"))
     ) {
-      val beforeIdesyde = LocalDateTime.now()
       (
         Seq(
           "java",
