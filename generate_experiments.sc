@@ -467,6 +467,66 @@ def generate_idesyde_1(): Unit = {
 }
 
 @main
+def generate_desyde_1(): Unit = {
+  val rootFolder = os.pwd / "sdfComparison" 
+  for (cores <- coreRange1) {
+    val desydePlatform = getDeSyDePlatformInput(generate_platform.makeTDMASingleBusPlatform(cores, 32L) )
+    for (actors <- actorRange1; q <- svrMultiplicationRange1) {
+      val sdf3SDFGen = getSdfGenerationInput(actors, (actors * q).ceil.toInt)
+      val appFolder = rootFolder / s"actors_${actors}" / s"svr_${(q*100).toInt}" 
+      val sdfGenFile = (appFolder / "sdf3_gen.xml").toNIO
+      os.makeDir.all(appFolder)
+      java.nio.file.Files.writeString(
+        sdfGenFile,
+        sdf3SDFGen,
+        java.nio.file.StandardOpenOption.CREATE,
+        java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
+      )
+      for ( exp <- 1 to dataPointsPerTuple) {
+        val combinationFolder = appFolder / s"plat_${cores}" / s"exp_${exp}"
+        os.makeDir.all(combinationFolder / "sdfs")
+        os.makeDir.all(combinationFolder / "xmls")
+        val sdfAppFile = (combinationFolder / "sdfs" / "applications_input.sdf3.xml").toNIO
+        val desydeFile =
+          (combinationFolder / "xmls" / "desyde_platform_input.xml").toNIO
+        val wcetTableFile = (combinationFolder / "xmls" / "WCETs.xml").toNIO
+        val configFile = (combinationFolder / "config.cfg").toNIO
+        if (!java.nio.file.Files.exists(sdfAppFile)) {
+          Seq(
+            sdf3Gen.toString(),
+            "--settings",
+            sdfGenFile.toString(),
+            "--output",
+            sdfAppFile.toString()
+          ).!
+        }
+        val sdfApp = modelHandler.loadModel(sdfAppFile)
+        val dseProblem = sdfApp.merge(idesydePlatform)
+        val wcetTable = computeWCETTable(dseProblem)
+        java.nio.file.Files.writeString(
+          desydeFile,
+          desydePlatform,
+          java.nio.file.StandardOpenOption.CREATE,
+          java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
+        )
+        java.nio.file.Files.writeString(
+          configFile,
+          configString,
+          java.nio.file.StandardOpenOption.CREATE,
+          java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
+        )
+        java.nio.file.Files.writeString(
+          wcetTableFile,
+          wcetTable,
+          java.nio.file.StandardOpenOption.CREATE,
+          java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
+        )
+      }
+    }
+  }
+}
+
+@main
 def generate(): Unit = {
   for (actors <- actorRange1; cores <- coreRange1) {
     val combinationFolder =
