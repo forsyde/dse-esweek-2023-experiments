@@ -528,6 +528,7 @@ def generate_desyde_1(): Unit = {
   }
 }
 
+@main
 def generate_idesyde_2(): Unit = {
   val rootFolder = os.pwd / "sdfScalability" 
   for (cores <- coreRange2) {
