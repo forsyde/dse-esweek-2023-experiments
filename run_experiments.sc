@@ -137,11 +137,13 @@ def evaluation_2_idesyde(): Unit = {
   // }
   for (
     cores <- generate_experiments.coreRange2;
-    actors <- generate_experiments.actorRange2
+    actors <- generate_experiments.actorRange2;
+    svr <- generate_experiments.svrMultiplicationRange2;
+    exp <- 1 to generate_experiments.dataPointsPerTuple
   ) {
-    println(s"-- Solving combination A $actors, P $cores")
+    println(s"-- Solving combination A $actors, SVR $svr, P $cores, EXP $exp")
     val expFolder =
-      os.pwd / "sdfScalability" / s"actors_${actors}" / s"plat_${cores}"
+      os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).ceil.toInt}" / s"plat_${cores}" / s"exp_$exp"
     val idesydeOutput = expFolder / "idesyde_output"
     java.nio.file.Files.createDirectories(idesydeOutput.toNIO)
     if (
@@ -152,7 +154,7 @@ def evaluation_2_idesyde(): Unit = {
       (
         Seq(
           "java",
-          "-Xmx28G",
+          "-Xmx24G",
           "-jar",
           idesydeBin,
           "-v",

@@ -91,7 +91,7 @@ def recompute_desyde_1(): Unit = {
                    // println(l)
                     firstTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
                     lastTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
-                } else if (l.contains("Solution found")) {
+                } else if (l.contains("solution found so far.")) {
                     lastTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
                 } else if (l.contains("End of exploration")) {
                     endTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
