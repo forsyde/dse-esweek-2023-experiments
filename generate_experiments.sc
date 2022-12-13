@@ -350,7 +350,7 @@ def generateDSEConfig(expPath: os.Path): String =
        |inputs=${expPath.toString()}/sdfs/
        |inputs=${expPath.toString()}/xmls/
        |output=${expPath.toString()}/desyde_output/
-       |log-file=${expPath.toString()}/desyde_output/output.log
+       |log-file=${expPath.toString()}/desyde_output.log
        |output-file-type=ALL_OUT
        |output-print-frequency=ALL_SOL
        |log-level=INFO
@@ -362,7 +362,6 @@ def generateDSEConfig(expPath: os.Path): String =
        |model=SDF_PR_ONLINE
        |search=OPTIMIZE
        |criteria=THROUGHPUT
-       |criteria=POWER
        |# search timeout. 0 means infinite. If two values are provided, the
        |# first one specifies the timeout for the first solution, and the
        |# second one for all solutions.

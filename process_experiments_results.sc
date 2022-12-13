@@ -85,17 +85,16 @@ def recompute_desyde_1(): Unit = {
            var lastTime = LocalDateTime.now()
            var endTime = LocalDateTime.now()
            Files.lines(outFile).forEach(l => {
-                val firstTimeLine = Files.lines(outFile).filter(s => s.contains("PRESOLVER executing full model - finding 2")).findAny()
-                if (l.contains("decision model(s) and explorer(s) chosen")) {
-                    startingTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
-                } else if (l.contains("solution_0")) {
+                if (l.contains("PRESOLVER executing full model - finding 1")) {
+                    startingTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
+                } else if (l.contains("PRESOLVER executing full model - finding 2")) {
                    // println(l)
-                    firstTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
-                    lastTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
-                } else if (l.contains("writing solution")) {
-                    lastTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
-                } else if (l.contains("Finished exploration")) {
-                    endTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
+                    firstTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
+                    lastTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
+                } else if (l.contains("Solution found")) {
+                    lastTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
+                } else if (l.contains("End of exploration")) {
+                    endTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
                 }
            })
            val runtimeFirst = ChronoUnit.MILLIS.between(startingTime, firstTime)

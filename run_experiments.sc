@@ -91,19 +91,18 @@ def evaluation_1_desyde(): Unit = {
   // }
   for (
     actors <- generate_experiments.actorRange1;
+    svr <- generate_experiments.svrMultiplicationRange1;
     cores <- generate_experiments.coreRange1;
     exp <- generate_experiments.experiments(actors)(cores)
   ) {
     println(s"-- Solving combination A $actors, P $cores, E $exp")
     val expFolder =
-      os.pwd / "sdfComparison" / s"plat_${cores}_actors_${actors}" / s"hsdf_$exp"
+      os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).ceil.toInt}" / s"plat_${cores}" / s"exp_$exp"
     val desydeOutput = expFolder / "desyde_output"
-    val desydeOutputOut = expFolder / "desyde_output" / "out"
     java.nio.file.Files.createDirectories(desydeOutput.toNIO)
-    java.nio.file.Files.createDirectories(desydeOutputOut.toNIO)
     if (
-      !Files.exists((expFolder / "desyde_output" / "output.log").toNIO) || Files
-        .lines((expFolder / "desyde_output" / "output.log").toNIO)
+      !Files.exists((expFolder / "desyde_output.log").toNIO) || Files
+        .lines((expFolder / "desyde_output.log").toNIO)
         .noneMatch(l => l.contains("End of exploration"))
     ) {
       val beforeDesyde = LocalDateTime.now()
