@@ -470,7 +470,9 @@ def generate_idesyde_1(): Unit = {
 def generate_desyde_1(): Unit = {
   val rootFolder = os.pwd / "sdfComparison" 
   for (cores <- coreRange1) {
-    val desydePlatform = getDeSyDePlatformInput(generate_platform.makeTDMASingleBusPlatform(cores, 32L) )
+    val idesydePlatform =
+      generate_platform.makeTDMASingleBusPlatform(cores, 32L)
+    val desydePlatform = getDeSyDePlatformInput(idesydePlatform)
     for (actors <- actorRange1; q <- svrMultiplicationRange1) {
       val sdf3SDFGen = getSdfGenerationInput(actors, (actors * q).ceil.toInt)
       val appFolder = rootFolder / s"actors_${actors}" / s"svr_${(q*100).toInt}" 
