@@ -26,11 +26,12 @@ def recompute_idesyde_1(): Unit = {
     )
     for (
         actors <- generate_experiments.actorRange1;
+        svr <- generate_experiments.svrMultiplicationRange1;
         cores <- generate_experiments.coreRange1;
         exp <- generate_experiments.experiments(actors)(cores)
     ) {
-        println((actors, cores, exp).toString())
-       val outFile = (os.pwd / "sdfComparison" / s"plat_${cores}_actors_${actors}" / s"hsdf_$exp" / "idesyde_output.log").toNIO
+       // println((actors, cores, exp).toString())
+       val outFile = (os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).toInt}"/ s"plat_${cores}" / s"exp_$exp" / "idesyde_output.log").toNIO
        if (Files.exists(outFile)) {
            var startingTime = LocalDateTime.now()
            var firstTime = LocalDateTime.now()
@@ -40,7 +41,7 @@ def recompute_idesyde_1(): Unit = {
                 if (l.contains("decision model(s) and explorer(s) chosen")) {
                     startingTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
                 } else if (l.contains("solution_0")) {
-                    println(l)
+                   // println(l)
                     firstTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
                     lastTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
                 } else if (l.contains("writing solution")) {
@@ -61,7 +62,56 @@ def recompute_idesyde_1(): Unit = {
     }
 }
 
+def recompute_desyde_1(): Unit = {
+    if (!Files.exists(desydeBenchmark)) {
+        Files.createFile(desydeBenchmark)
+    }
+    Files.writeString(
+        desydeBenchmark,
+        "plat, actors, exp, start, first, runtime_first, last, runtime_last, stop, runtime\n",
+        StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING
+    )
+    for (
+        actors <- generate_experiments.actorRange1;
+        svr <- generate_experiments.svrMultiplicationRange1;
+        cores <- generate_experiments.coreRange1;
+        exp <- generate_experiments.experiments(actors)(cores)
+    ) {
+       // println((actors, cores, exp).toString())
+       val outFile = (os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).toInt}"/ s"plat_${cores}" / s"exp_$exp" / "output.log").toNIO
+       if (Files.exists(outFile)) {
+           var startingTime = LocalDateTime.now()
+           var firstTime = LocalDateTime.now()
+           var lastTime = LocalDateTime.now()
+           var endTime = LocalDateTime.now()
+           Files.lines(outFile).forEach(l => {
+                val firstTimeLine = Files.lines(outFile).filter(s => s.contains("PRESOLVER executing full model - finding 2")).findAny()
+                if (l.contains("decision model(s) and explorer(s) chosen")) {
+                    startingTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
+                } else if (l.contains("solution_0")) {
+                   // println(l)
+                    firstTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
+                    lastTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
+                } else if (l.contains("writing solution")) {
+                    lastTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
+                } else if (l.contains("Finished exploration")) {
+                    endTime = LocalDateTime.parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
+                }
+           })
+           val runtimeFirst = ChronoUnit.MILLIS.between(startingTime, firstTime)
+           val runtimeLast = ChronoUnit.MILLIS.between(startingTime, lastTime)
+           val runtime = ChronoUnit.MILLIS.between(startingTime, endTime)
+           Files.writeString(
+             desydeBenchmark,
+             s"$cores, $actors, $exp, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime\n",
+             StandardOpenOption.APPEND
+           )
+       }
+    }
+}
+
 @main
 def recomputeAll(): Unit = {
     recompute_idesyde_1()
+    recompute_desyde_1()
 }
