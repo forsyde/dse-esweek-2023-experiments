@@ -93,9 +93,9 @@ def evaluation_1_desyde(): Unit = {
     actors <- generate_experiments.actorRange1;
     svr <- generate_experiments.svrMultiplicationRange1;
     cores <- generate_experiments.coreRange1;
-    exp <- generate_experiments.experiments(actors)(cores)
+    exp <- 1 to generate_experiments.dataPointsPerTuple
   ) {
-    println(s"-- Solving combination A $actors, P $cores, E $exp")
+    println(s"-- Solving combination A $actors, SVR $svr, P $cores, E $exp")
     val expFolder =
       os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).ceil.toInt}" / s"plat_${cores}" / s"exp_$exp"
     val desydeOutput = expFolder / "desyde_output"
