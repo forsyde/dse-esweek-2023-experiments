@@ -28,7 +28,7 @@ import java.util.stream.Collectors
 
 val modelHandler = new ForSyDeModelHandler(new ForSyDeSDF3Driver())
 
-val actorRange1 = 2 to 10
+val actorRange1 = 2 to 20
 val coreRange1 = 2 to 8
 val svrMultiplicationRange1 = Array(1.0)
 val dataPointsPerTuple = 5
