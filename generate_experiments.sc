@@ -30,13 +30,13 @@ val modelHandler = new ForSyDeModelHandler(new ForSyDeSDF3Driver())
 
 val actorRange1 = 2 to 10
 val coreRange1 = 2 to 8
-val svrMultiplicationRange1 = Array(1.0, 1.5, 2.0, 5.0, 10.0)
+val svrMultiplicationRange1 = Array(1.0)
 val dataPointsPerTuple = 5
 val maxNumExperiments1 = 100
 
 val actorRange2 = (2 to 10) ++ (12 to 50 by 2)
 val coreRange2 = (2 to 8)
-val svrMultiplicationRange2 = Array(1.0)
+val svrMultiplicationRange2 = Array(1.0, 2.0, 5.0, 10.0)
 
 val actorRange3 = actorRange2 ++ (105 to 1000 by 5)
 val coreRange3 = coreRange2 ++ (20 to 64 by 4)
