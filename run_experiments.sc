@@ -99,7 +99,9 @@ def evaluation_1_desyde(): Unit = {
     val expFolder =
       os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).ceil.toInt}" / s"plat_${cores}" / s"exp_$exp"
     val desydeOutput = expFolder / "desyde_output"
+    val desydeOutputOut = expFolder / "desyde_output" / "out"
     java.nio.file.Files.createDirectories(desydeOutput.toNIO)
+    java.nio.file.Files.createDirectories(desydeOutputOut.toNIO)
     if (
       !Files.exists((expFolder / "desyde_output.log").toNIO) || Files
         .lines((expFolder / "desyde_output.log").toNIO)
