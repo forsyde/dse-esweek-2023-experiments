@@ -77,13 +77,14 @@ def plot_quantiles(total_data: pd.DataFrame, plot_name="total_runtime_benchmark"
     # put a 1 day line
     if total_max_runtime_in_secs > 60 * 60 * 24:
         ax.hlines(y=60 * 60 * 24, xmin=total_min_actors - 0.5, xmax=total_max_actors + 0.5, linestyles="dashed", colors="red", lw=0.5)
-        ax.text(num_actors / 2, 60 * 60 * 24 + 50000, "1 Day", color="red")
+        ax.text(num_actors / 2 + 0.5, 60 * 60 * 24 + 50000, "1 Day", color="red")
     # put a 5 days line
     if total_max_runtime_in_secs > 60 * 60 * 24 * 5:
         ax.hlines(y=60 * 60 * 24 * 5, xmin=total_min_actors - 0.5, xmax=total_max_actors + 0.5, linestyles="dashed", colors="red", lw=0.5)
     ax.legend(fontsize=7)
     plt.tight_layout()
     fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
+    fig.savefig(plot_name + '.png', bbox_inches="tight")
 
 # ---------------------- FIRST SOLUTIONS ----
 def plot_firsts(firsts_data: pd.DataFrame, plot_name = "first_runtime_benchmark"):
@@ -112,14 +113,36 @@ def plot_firsts(firsts_data: pd.DataFrame, plot_name = "first_runtime_benchmark"
     # save the plot
     plt.tight_layout()
     fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
+    fig.savefig(plot_name + '.png', bbox_inches="tight")
 
+def plot_complexity_barriers(complex_data: pd.DataFrame, plot_name="complexity_barrier"):
+    min_plat = complex_data['plat'].min()
+    max_plat = complex_data['plat'].max()
+    min_actors = complex_data[' actors'].min()
+    max_actors = complex_data[' actors'].max()
+    first_min_runtime_in_secs = complex_data[' runtime_first'].min()
+    first_max_runtime_in_secs = complex_data[' runtime_first'].max()
+    max_agg = complex_data.groupby(['plat', ' actors']).max()
+    min_agg = complex_data.groupby(['plat', ' actors']).min()
+
+    fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
+    zvalues = max_agg.reset_index().pivot(index='plat', columns=' actors', values=' runtime')
+    cs = ax.contour(zvalues.columns.values, zvalues.index.values, zvalues.values / 1000.0, [60, 3600, 3600*8, 3600*24])
+    ax.clabel(cs, levels=cs.levels, inline=True, fontsize=6, fmt={k: v for (k ,v) in zip(cs.levels, ['1 min', '1 hour', '8 hours', '1 day'])})
+    ax.set_ylabel('Number of cores')
+    ax.set_xlabel('Number of actors')
+    ax.grid(True, axis='both', linewidth=0.3)
+    plt.tight_layout()
+    fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
+    fig.savefig(plot_name + '.png', bbox_inches="tight")
+    
 
 def main():
     args = parse_args()
     idesyde_data = pd.read_csv('idesyde_benchmark.csv')
     desyde_data = pd.read_csv("desyde_benchmark.csv")
     if not args.no_quantiles:
-        print("-- plotting quantiles idesyde --")
+        print("-- plotting quantiles --")
         if len(idesyde_data) > 0:
             plot_quantiles(idesyde_data, "idesyde_total_benchmark")
         if len(desyde_data) > 0:
@@ -130,6 +153,11 @@ def main():
             plot_firsts(idesyde_data, "idesyde_firsts_benchmark")
         if len(desyde_data) > 0:
             plot_firsts(desyde_data, "desyde_firsts_benchmark")
+    print("-- plotting complexity map --")
+    if len(idesyde_data) > 0:
+        plot_complexity_barriers(idesyde_data, "idesyde_total_complexity")
+    if len(desyde_data) > 0:
+        plot_complexity_barriers(desyde_data, "desyde_total_complexity")
 
 if __name__ == "__main__":
     main()
