@@ -356,7 +356,7 @@ def generateDSEConfig(expPath: os.Path): String =
        |log-level=DEBUG
        |[presolver]
        |model=ONE_PROC_MAPPINGS
-       |search=ALL
+       |search=OPTIMIZE
        |[dse]
        |model=SDF_PR_ONLINE
        |search=OPTIMIZE
