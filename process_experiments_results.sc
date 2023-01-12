@@ -28,7 +28,7 @@ def recompute_idesyde_1(): Unit = {
         actors <- generate_experiments.actorRange1;
         svr <- generate_experiments.svrMultiplicationRange1;
         cores <- generate_experiments.coreRange1;
-        exp <- generate_experiments.experiments(actors)(cores)
+        exp <- 1 to generate_experiments.dataPointsPerTuple
     ) {
        // println((actors, cores, exp).toString())
        val outFile = (os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).toInt}"/ s"plat_${cores}" / s"exp_$exp" / "idesyde_output.log").toNIO
@@ -56,7 +56,7 @@ def recompute_idesyde_1(): Unit = {
            Files.writeString(
              idesydeBenchmark,
              s"$cores, $actors, ${(svr * 100).toInt}, $exp, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime\n",
-             StandardOpenOption.APPEND
+             StandardOpenOption.WRITE, StandardOpenOption.APPEND
            )
        }
     }
@@ -75,7 +75,7 @@ def recompute_desyde_1(): Unit = {
         actors <- generate_experiments.actorRange1;
         svr <- generate_experiments.svrMultiplicationRange1;
         cores <- generate_experiments.coreRange1;
-        exp <- generate_experiments.experiments(actors)(cores)
+        exp <- 1 to generate_experiments.dataPointsPerTuple
     ) {
        // println((actors, cores, exp).toString())
        val outFile = (os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).toInt}"/ s"plat_${cores}" / s"exp_$exp" / "output.log").toNIO
@@ -103,7 +103,7 @@ def recompute_desyde_1(): Unit = {
            Files.writeString(
              desydeBenchmark,
              s"$cores, $actors, ${(svr * 100).toInt}, $exp, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime\n",
-             StandardOpenOption.APPEND
+             StandardOpenOption.WRITE, StandardOpenOption.APPEND
            )
        }
     }

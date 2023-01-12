@@ -41,34 +41,17 @@ def parse_args():
 
     return parser.parse_args()
 
-def plot_quantiles():
-    idesyde_data = pd.read_csv('idesyde_benchmark.csv')
-    desyde_data = pd.read_csv("desyde_benchmark.csv")
-
-    idesyde_data = idesyde_data[idesyde_data[' exp'] <= idesyde_data['plat'] * idesyde_data[' actors']]
-    desyde_data = desyde_data[desyde_data[' exp'] <= desyde_data['plat'] * desyde_data[' actors']]
-
-
+def plot_quantiles_desyde(desyde_data):
     desyde_agg = desyde_data.groupby(['plat', ' actors']) # the space before actors is significant because of header names
-    idesyde_agg = idesyde_data.groupby(['plat', ' actors']) # the space before actors is significant because of header names
 
     desyde_quantiles = desyde_agg.quantile(quantiles, numeric_only=True)
     desyde_min_plat = desyde_data['plat'].min()
     desyde_max_plat = desyde_data['plat'].max()
     desyde_min_actors = desyde_data[' actors'].min()
     desyde_max_actors = desyde_data[' actors'].max()
-    desyde_min_runtime_in_secs = desyde_data[' runtime'].min() / 1000
-    desyde_max_runtime_in_secs = desyde_data[' runtime'].max() / 1000
+    desyde_min_runtime_in_secs = int(desyde_data[' runtime'].min() / 1000)
+    desyde_max_runtime_in_secs = int(desyde_data[' runtime'].max() / 1000)
 
-    idesyde_quantiles = idesyde_agg.quantile(quantiles, numeric_only=True)
-    idesyde_min_plat = idesyde_data['plat'].min()
-    idesyde_max_plat = idesyde_data['plat'].max()
-    idesyde_min_actors = idesyde_data[' actors'].min()
-    idesyde_max_actors = idesyde_data[' actors'].max()
-    idesyde_min_runtime_in_secs = idesyde_data[' runtime'].min() / 1000
-    idesyde_max_runtime_in_secs = idesyde_data[' runtime'].max() / 1000
-
-    # first for desyde
     fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
     for plat in range(desyde_min_plat, desyde_max_plat + 1):
         # for median
@@ -89,7 +72,17 @@ def plot_quantiles():
     plt.tight_layout()
     fig.savefig('desyde_benchmark_plot.pdf', transparent=True, bbox_inches="tight")
 
-    # first for idesyde
+def plot_quantiles_idesyde(idesyde_data):
+    idesyde_agg = idesyde_data.groupby(['plat', ' actors']) # the space before actors is significant because of header names
+
+    idesyde_quantiles = idesyde_agg.quantile(quantiles, numeric_only=True)
+    idesyde_min_plat = idesyde_data['plat'].min()
+    idesyde_max_plat = idesyde_data['plat'].max()
+    idesyde_min_actors = idesyde_data[' actors'].min()
+    idesyde_max_actors = idesyde_data[' actors'].max()
+    idesyde_min_runtime_in_secs = int(idesyde_data[' runtime'].min() / 1000)
+    idesyde_max_runtime_in_secs = int(idesyde_data[' runtime'].max() / 1000)
+
     fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
     for plat in range(idesyde_min_plat, idesyde_max_plat + 1):
         # for median
@@ -204,9 +197,14 @@ def plot_firsts():
 
 def main():
     args = parse_args()
+    idesyde_data = pd.read_csv('idesyde_benchmark.csv')
+    desyde_data = pd.read_csv("desyde_benchmark.csv")
     if not args.no_quantiles:
-        print("-- plotting quantiles --")
-        plot_quantiles()
+        print("-- plotting quantiles idesyde --")
+        if len(idesyde_data) > 0:
+            plot_quantiles_idesyde(idesyde_data)
+        if len(desyde_data) > 0:
+            plot_quantiles_desyde(desyde_data)
     if not args.no_firsts:
         print("-- plotting firsts --")
         plot_firsts()
