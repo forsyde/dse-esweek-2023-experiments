@@ -4,15 +4,17 @@ import pathlib
 import os
 
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 ### Baseline
-img_ratio = 0.7 # golden ratio - 1 is 0.618033988749894
+img_ratio = 0.8 # golden ratio - 1 is 0.618033988749894
 expected_space_per_y_count = 0.3
 img_width_in_inches = 3.5 # column size of a IEEE 2-column paper
 img_height_in_inches = img_width_in_inches * img_ratio
-quantiles = [0.2, 0.5, 0.8]
+quantiles_bounds = [0.2, 0.5, 0.8]
+marker_list = ['o', 's']
 
 ## global style configuration
 mpl.rcParams.update({
@@ -41,158 +43,75 @@ def parse_args():
 
     return parser.parse_args()
 
-def plot_quantiles_desyde(desyde_data):
-    desyde_agg = desyde_data.groupby(['plat', ' actors']) # the space before actors is significant because of header names
+def plot_quantiles(total_data: pd.DataFrame, plot_name="total_runtime_benchmark"):
+    total_agg = total_data.groupby(['plat', ' actors']) # the space before actors is significant because of header names
 
-    desyde_quantiles = desyde_agg.quantile(quantiles, numeric_only=True)
-    desyde_min_plat = desyde_data['plat'].min()
-    desyde_max_plat = desyde_data['plat'].max()
-    desyde_min_actors = desyde_data[' actors'].min()
-    desyde_max_actors = desyde_data[' actors'].max()
-    desyde_min_runtime_in_secs = int(desyde_data[' runtime'].min() / 1000)
-    desyde_max_runtime_in_secs = int(desyde_data[' runtime'].max() / 1000)
-
-    fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
-    for plat in range(desyde_min_plat, desyde_max_plat + 1):
-        # for median
-        series_top = desyde_quantiles.loc[plat, :, quantiles[2]]
-        series_median = desyde_quantiles.loc[plat, :, quantiles[1]]
-        series_bottom = desyde_quantiles.loc[plat, :, quantiles[0]]
-        ax.plot(series_median.index, series_median[' runtime'] / 1000.0, linestyle='--', marker='.', linewidth=0.8)
-        ax.set_xlim(desyde_min_actors, desyde_max_actors)
-        # ax.set_ylim(desyde_min_runtime_in_secs, desyde_max_runtime_in_secs)
-        # ax.set_yticks(range(0, ymax + 1))
-        ax.set_yscale('log')
-        ax.set_xticks(range(desyde_min_actors, desyde_max_actors + 1))
-        ax.grid(True, axis='both')
-        ax.set_ylabel('Runtime [s]')
-        ax.set_xlabel('\# Actors')
-    # ax[-1].set_xlabel('Publication Year')
-    # save the plot
-    plt.tight_layout()
-    fig.savefig('desyde_benchmark_plot.pdf', transparent=True, bbox_inches="tight")
-
-def plot_quantiles_idesyde(idesyde_data):
-    idesyde_agg = idesyde_data.groupby(['plat', ' actors']) # the space before actors is significant because of header names
-
-    idesyde_quantiles = idesyde_agg.quantile(quantiles, numeric_only=True)
-    idesyde_min_plat = idesyde_data['plat'].min()
-    idesyde_max_plat = idesyde_data['plat'].max()
-    idesyde_min_actors = idesyde_data[' actors'].min()
-    idesyde_max_actors = idesyde_data[' actors'].max()
-    idesyde_min_runtime_in_secs = int(idesyde_data[' runtime'].min() / 1000)
-    idesyde_max_runtime_in_secs = int(idesyde_data[' runtime'].max() / 1000)
+    total_quantiles = total_agg.quantile(quantiles_bounds, numeric_only=True)
+    total_max = total_agg.max(numeric_only=True)
+    total_min_plat = total_data['plat'].min()
+    total_max_plat = total_data['plat'].max()
+    total_min_actors = total_data[' actors'].min()
+    total_max_actors = total_data[' actors'].max()
+    total_min_runtime_in_secs = int(total_data[' runtime'].min() / 1000)
+    total_max_runtime_in_secs = int(total_data[' runtime'].max() / 1000)
+    num_actors = total_max_actors - total_min_actors
+    num_plat = total_max_plat - total_min_plat
 
     fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
-    for plat in range(idesyde_min_plat, idesyde_max_plat + 1):
-        # for median
-        series_top = idesyde_quantiles.loc[plat, :, quantiles[2]]
-        series_median = idesyde_quantiles.loc[plat, :, quantiles[1]]
-        series_bottom = idesyde_quantiles.loc[plat, :, quantiles[0]]
-        ax.plot(series_median.index, series_median[' runtime'] / 1000.0, linestyle='--', marker='.', linewidth=0.8)
-        ax.set_xlim(idesyde_min_actors, idesyde_max_actors)
-        # ax.set_ylim(idesyde_min_runtime_in_secs, idesyde_max_runtime_in_secs)
+    for (i, plat) in enumerate(range(total_min_plat, total_max_plat + 1)):
+        series_max = total_max.loc[plat, :]
+        # total_for_plat = total_data[total_data['plat'].eq(plat)]
+        # colors = [mpl.colormaps['inferno'](1.0 - float(i)/num_plat) for _ in total_for_plat[' actors']]
+        # ax.scatter(total_for_plat[' actors'] - 0.5 + float(i)/num_plat, total_for_plat[' runtime'] / 1000.0, s=1.0, c=colors, linestyle='--', marker="o", alpha=0.5, label="plat = {0}".format(i))
+        ax.plot(series_max.index, series_max[' runtime'] / 1000.0, linestyle='--', lw=0.8, color=mpl.colormaps['viridis'](1.0 - float(i)/num_plat), label="\#P = {0}".format(plat), marker=".")
+        ax.set_xlim(total_min_actors - 0.5, total_max_actors + 0.5)
+        # ax.set_ylim(total_min_runtime_in_secs, total_max_runtime_in_secs)
         # ax.set_yticks(range(0, ymax + 1))
         ax.set_yscale('log')
-        ax.set_xticks(range(idesyde_min_actors, idesyde_max_actors + 1))
-        ax.grid(True, axis='both')
+        ax.set_xticks(range(total_min_actors, total_max_actors + 1))
+        ax.grid(True, axis='both', linewidth=0.5)
         ax.set_ylabel('Runtime [s]')
-        ax.set_xlabel('Number of Actors')
+        ax.set_xlabel('Number of actors')
     # ax[-1].set_xlabel('Publication Year')
     # save the plot
+    # put a 1 day line
+    if total_max_runtime_in_secs > 60 * 60 * 24:
+        ax.hlines(y=60 * 60 * 24, xmin=total_min_actors - 0.5, xmax=total_max_actors + 0.5, linestyles="dashed", colors="red", lw=0.5)
+        ax.text(num_actors / 2, 60 * 60 * 24 + 50000, "1 Day", color="red")
+    # put a 5 days line
+    if total_max_runtime_in_secs > 60 * 60 * 24 * 5:
+        ax.hlines(y=60 * 60 * 24 * 5, xmin=total_min_actors - 0.5, xmax=total_max_actors + 0.5, linestyles="dashed", colors="red", lw=0.5)
+    ax.legend(fontsize=7)
     plt.tight_layout()
-    fig.savefig('idesyde_benchmark_plot.pdf', transparent=True, bbox_inches="tight")
-
+    fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
 
 # ---------------------- FIRST SOLUTIONS ----
-def plot_firsts():
-    idesyde_data = pd.read_csv('idesyde_benchmark.csv')
-    desyde_data = pd.read_csv("desyde_benchmark.csv")
-
-    idesyde_data = idesyde_data[idesyde_data[' exp'] <= idesyde_data['plat'] * idesyde_data[' actors']]
-    desyde_data = desyde_data[desyde_data[' exp'] <= desyde_data['plat'] * desyde_data[' actors']]
-
-    def compute_desyde_first_sol(plat, actors, exp):
-        fpath = pathlib.Path('.') / "sdfComparison" / "plat_{0}_actors_{1}".format(plat, actors) / "hsdf_{0}".format(exp) / "desyde_output" / "output.log"
-        if fpath.exists():
-            with open(fpath, 'r') as f:
-                line = next(l for l in  f.readlines() if 'PRESOLVER executing full model - finding 2' in l)
-                # datestr = line[:18]
-                timestamp = datetime.fromisoformat(line[:19])
-                return timestamp
-        else:
-            return None
-
-        
-    desyde_data[' first'] = desyde_data.apply(lambda row: compute_desyde_first_sol(row['plat'], row[' actors'], row[' exp']), axis=1)
-    desyde_filtered = desyde_data.loc[desyde_data[' first'] != pd.NaT]
-    desyde_filtered[' runtime_first'] = desyde_filtered.apply(lambda row: (
-        row[' first'] - datetime.fromisoformat(row[' start'][:27].strip())
-    ).total_seconds(), axis=1)
-    desyde_filtered = desyde_filtered.loc[desyde_filtered[' first'] != pd.NaT]
-    
-    desyde_min_plat = desyde_filtered['plat'].min()
-    desyde_max_plat = desyde_filtered['plat'].max()
-    desyde_min_actors = desyde_filtered[' actors'].min()
-    desyde_max_actors = desyde_filtered[' actors'].max()
-    desyde_first_min_runtime_in_secs = desyde_filtered[' runtime_first'].min()
-    desyde_first_max_runtime_in_secs = desyde_filtered[' runtime_first'].max()
-    desyde_quantiles = desyde_filtered.groupby(['plat', ' actors']).quantile(quantiles, numeric_only=True)
+def plot_firsts(firsts_data: pd.DataFrame, plot_name = "first_runtime_benchmark"):
+    min_plat = firsts_data['plat'].min()
+    max_plat = firsts_data['plat'].max()
+    min_actors = firsts_data[' actors'].min()
+    max_actors = firsts_data[' actors'].max()
+    first_min_runtime_in_secs = firsts_data[' runtime_first'].min()
+    first_max_runtime_in_secs = firsts_data[' runtime_first'].max()
+    first_agg = firsts_data.groupby(['plat', ' actors'])
+    first_avg = first_agg.mean(numeric_only=True)
     
     fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
-    for plat in range(desyde_min_plat, desyde_max_plat + 1):
+    for plat in range(min_plat, max_plat + 1):
         # for median
-        series_top = desyde_quantiles.loc[plat, :, quantiles[2]]
-        series_median = desyde_quantiles.loc[plat, :, quantiles[1]]
-        series_bottom = desyde_quantiles.loc[plat, :, quantiles[0]]
-        ax.plot(series_median.index, series_median[' runtime_first'], linestyle='--', marker='.', linewidth=0.8)
-        ax.set_xlim(desyde_min_actors, desyde_max_actors)
+        series_avg = first_avg.loc[plat, :]
+        ax.plot(series_avg.index, series_avg[' runtime_first'], linestyle='--', marker='.', linewidth=0.8)
+        ax.set_xlim(min_actors, max_actors)
         # ax.set_ylim(desyde_min_runtime_in_secs, desyde_max_runtime_in_secs)
         # ax.set_yticks(range(0, ymax + 1))
-        ax.set_xticks(range(desyde_min_actors, desyde_max_actors + 1))
+        ax.set_xticks(range(min_actors, max_actors + 1))
         ax.grid(True, axis='both')
-        ax.set_ylabel('Runtime [s]')
-        ax.set_xlabel('Number of Actors')
+        ax.set_ylabel('Runtime [ms]')
+        ax.set_xlabel('Number of actors')
     # ax[-1].set_xlabel('Publication Year')
     # save the plot
     plt.tight_layout()
-    fig.savefig('desyde_benchmark_first_plot.pdf', transparent=True, bbox_inches="tight")
-    
-    idesyde_min_plat = idesyde_data['plat'].min()
-    idesyde_max_plat = idesyde_data['plat'].max()
-    idesyde_min_actors = idesyde_data[' actors'].min()
-    idesyde_max_actors = idesyde_data[' actors'].max()
-    idesyde_first_min_runtime_in_secs = idesyde_data[' runtime_first'].min() / 1000
-    idesyde_first_max_runtime_in_secs = idesyde_data[' runtime_first'].max() / 1000
-    idesyde_quantiles = idesyde_data.groupby(['plat', ' actors']).quantile(quantiles, numeric_only=True)
-
-    # for (plat, actors, exp) in idesyde_firsts.index:
-    #     output_folder = pathlib.Path('sdfComparison') / "plat_{0}_actors_{1}".format(plat, actors) / "hsdf_{0}".format(exp) / "idesyde_output"
-    #     start_time = datetime.fromisoformat(idesyde_firsts.loc[plat, actors, exp].strip()[:26])
-    #     first_solution = min(output_folder.glob("solution*"), key=lambda f: f.stat().st_mtime)
-    #     first_found = datetime.fromtimestamp(first_solution.stat().st_mtime)
-    #     duration = first_found - start_time
-    #     print(duration)
-
-    fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
-    for plat in range(idesyde_min_plat, idesyde_max_plat + 1):
-        # for median
-        series_top = idesyde_quantiles.loc[plat, :, quantiles[2]]
-        series_median = idesyde_quantiles.loc[plat, :, quantiles[1]]
-        series_bottom = idesyde_quantiles.loc[plat, :, quantiles[0]]
-        ax.plot(series_median.index, series_median[' runtime_first'] / 1000.0, linestyle='--', marker='.', linewidth=0.8)
-        ax.set_xlim(idesyde_min_actors, idesyde_max_actors)
-        # ax.set_ylim(idesyde_min_runtime_in_secs, idesyde_max_runtime_in_secs)
-        # ax.set_yticks(range(0, ymax + 1))
-        # ax.set_yscale('log')
-        ax.set_xticks(range(idesyde_min_actors, idesyde_max_actors + 1))
-        ax.grid(True, axis='both')
-        ax.set_ylabel('Runtime [s]')
-        ax.set_xlabel('Number of Actors')
-    # ax[-1].set_xlabel('Publication Year')
-    # save the plot
-    plt.tight_layout()
-    fig.savefig('idesyde_benchmark_first_plot.pdf', transparent=True, bbox_inches="tight")
+    fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
 
 
 def main():
@@ -202,12 +121,15 @@ def main():
     if not args.no_quantiles:
         print("-- plotting quantiles idesyde --")
         if len(idesyde_data) > 0:
-            plot_quantiles_idesyde(idesyde_data)
+            plot_quantiles(idesyde_data, "idesyde_total_benchmark")
         if len(desyde_data) > 0:
-            plot_quantiles_desyde(desyde_data)
+            plot_quantiles(desyde_data, "desyde_total_benchmark")
     if not args.no_firsts:
         print("-- plotting firsts --")
-        plot_firsts()
+        if len(idesyde_data) > 0:
+            plot_firsts(idesyde_data, "idesyde_firsts_benchmark")
+        if len(desyde_data) > 0:
+            plot_firsts(desyde_data, "desyde_firsts_benchmark")
 
 if __name__ == "__main__":
     main()
