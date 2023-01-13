@@ -25,10 +25,10 @@ def evaluation_1_idesyde(): Unit = {
   //   )
   // }
   for (
+    exp <- 1 to generate_experiments.dataPointsPerTuple;
     actors <- generate_experiments.actorRange1;
     cores <- generate_experiments.coreRange1;
-    svr <- generate_experiments.svrMultiplicationRange1;
-    exp <- 1 to generate_experiments.dataPointsPerTuple
+    svr <- generate_experiments.svrMultiplicationRange1
   ) {
     println(s"-- Solving combination $actors, $cores, $svr, $exp")
     val expFolder =
@@ -90,10 +90,10 @@ def evaluation_1_desyde(): Unit = {
   //   )
   // }
   for (
+    exp <- 1 to generate_experiments.dataPointsPerTuple;
     actors <- generate_experiments.actorRange1;
     svr <- generate_experiments.svrMultiplicationRange1;
-    cores <- generate_experiments.coreRange1;
-    exp <- 1 to generate_experiments.dataPointsPerTuple
+    cores <- generate_experiments.coreRange1
   ) {
     println(s"-- Solving combination A $actors, SVR $svr, P $cores, E $exp")
     val expFolder =
@@ -138,10 +138,10 @@ def evaluation_2_idesyde(): Unit = {
   //   )
   // }
   for (
+    exp <- 1 to generate_experiments.dataPointsPerTuple;
     cores <- generate_experiments.coreRange2;
     actors <- generate_experiments.actorRange2;
-    svr <- generate_experiments.svrMultiplicationRange2;
-    exp <- 1 to generate_experiments.dataPointsPerTuple
+    svr <- generate_experiments.svrMultiplicationRange2
   ) {
     println(s"-- Solving combination A $actors, SVR $svr, P $cores, EXP $exp")
     val expFolder =
