@@ -78,7 +78,7 @@ def recompute_desyde_1(): Unit = {
         exp <- 1 to generate_experiments.dataPointsPerTuple
     ) {
        // println((actors, cores, exp).toString())
-       val outFile = (os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).toInt}"/ s"plat_${cores}" / s"exp_$exp" / "output.log").toNIO
+       val outFile = (os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).toInt}"/ s"plat_${cores}" / s"exp_$exp" / "desyde_output.log").toNIO
        if (Files.exists(outFile)) {
            var startingTime = LocalDateTime.now()
            var firstTime = LocalDateTime.now()
@@ -86,15 +86,15 @@ def recompute_desyde_1(): Unit = {
            var endTime = LocalDateTime.now()
            Files.lines(outFile).forEach(l => {
                 if (l.contains("PRESOLVER executing full model - finding 1")) {
-                    startingTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
+                    startingTime = LocalDateTime.parse(l.subSequence(0, 19), desydeDateTimeFormatter)
                 } else if (l.contains("PRESOLVER executing full model - finding 2")) {
                    // println(l)
-                    firstTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
-                    lastTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
+                    firstTime = LocalDateTime.parse(l.subSequence(0, 19), desydeDateTimeFormatter)
+                    lastTime = LocalDateTime.parse(l.subSequence(0, 19), desydeDateTimeFormatter)
                 } else if (l.contains("solution found so far.")) {
-                    lastTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
+                    lastTime = LocalDateTime.parse(l.subSequence(0, 19), desydeDateTimeFormatter)
                 } else if (l.contains("End of exploration")) {
-                    endTime = LocalDateTime.parse(l.subSequence(0, 23), desydeDateTimeFormatter)
+                    endTime = LocalDateTime.parse(l.subSequence(0, 19), desydeDateTimeFormatter)
                 }
            })
            val runtimeFirst = ChronoUnit.MILLIS.between(startingTime, firstTime)

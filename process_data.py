@@ -75,12 +75,13 @@ def plot_quantiles(total_data: pd.DataFrame, plot_name="total_runtime_benchmark"
     # ax[-1].set_xlabel('Publication Year')
     # save the plot
     # put a 1 day line
-    if total_max_runtime_in_secs > 60 * 60 * 24:
+    if total_max_runtime_in_secs >= 60 * 60 * 24:
         ax.hlines(y=60 * 60 * 24, xmin=total_min_actors - 0.5, xmax=total_max_actors + 0.5, linestyles="dashed", colors="red", lw=0.5)
-        ax.text(num_actors / 2 + 0.5, 60 * 60 * 24 + 50000, "1 Day", color="red")
+        ax.text(num_actors / 2 + 0.5, 60 * 60 * 24 - 58000, "1 Day", color="red")
     # put a 5 days line
-    if total_max_runtime_in_secs > 60 * 60 * 24 * 5:
+    if total_max_runtime_in_secs >= 60 * 60 * 24 * 5:
         ax.hlines(y=60 * 60 * 24 * 5, xmin=total_min_actors - 0.5, xmax=total_max_actors + 0.5, linestyles="dashed", colors="red", lw=0.5)
+        ax.text(num_actors / 2 + 0.5, 60 * 60 * 24 * 5 - 280000, "5 Days", color="red")
     ax.legend(fontsize=7)
     plt.tight_layout()
     fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
@@ -127,15 +128,46 @@ def plot_complexity_barriers(complex_data: pd.DataFrame, plot_name="complexity_b
 
     fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
     zvalues = max_agg.reset_index().pivot(index='plat', columns=' actors', values=' runtime')
-    cs = ax.contour(zvalues.columns.values, zvalues.index.values, zvalues.values / 1000.0, [60, 3600, 3600*8, 3600*24])
-    ax.clabel(cs, levels=cs.levels, inline=True, fontsize=6, fmt={k: v for (k ,v) in zip(cs.levels, ['1 min', '1 hour', '8 hours', '1 day'])})
+    xvalues, yvalues = np.meshgrid(zvalues.columns.values, zvalues.index.values)
+    cs = ax.contourf(xvalues, yvalues, zvalues.values / 1000.0, [60, 3600, 3600*8, 3600*24, 3600*24*5], locator=mpl.ticker.LogLocator())
+    cs2 = ax.contour(cs, colors='r')
+    # ax.clabel(cs2, levels=cs.levels, inline=True, fontsize=6, fmt={k: v for (k ,v) in zip(cs.levels, ['1 min', '1 hour', '8 hours', '1 day', '5 days'])})
+    cbar = fig.colorbar(cs)
+    cbar.add_lines(cs2)
+    cbar.set_ticklabels(['1 min', '1 hour', '8 hours', '1 day', '5 days'])
+    cbar.set_label("runtime [s]")
     ax.set_ylabel('Number of cores')
     ax.set_xlabel('Number of actors')
+    ax.set_xticks(range(2, 14, 2))
     ax.grid(True, axis='both', linewidth=0.3)
     plt.tight_layout()
     fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
     fig.savefig(plot_name + '.png', bbox_inches="tight")
-    
+
+
+def plot_3dcolormap(data3d: pd.DataFrame, plot_name="3d_plot"):
+    min_plat = data3d['plat'].min()
+    max_plat = data3d['plat'].max()
+    min_actors = data3d[' actors'].min()
+    max_actors = data3d[' actors'].max()
+    first_min_runtime_in_secs = data3d[' runtime_first'].min()
+    first_max_runtime_in_secs = data3d[' runtime_first'].max()
+    max_agg = data3d.groupby(['plat', ' actors']).max()
+    min_agg = data3d.groupby(['plat', ' actors']).min()
+
+    fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches), subplot_kw={"projection": "3d"})
+    zvalues = max_agg.reset_index().pivot(index='plat', columns=' actors', values=' runtime')
+    xvalues, yvalues = np.meshgrid(zvalues.columns.values, zvalues.index.values)
+    surf = ax.plot_surface(xvalues, yvalues, np.log10(zvalues.values / 1000.0))
+    # ax.clabel(surf, levels=surf.levels, inline=True, fontsize=6, fmt={k: v for (k ,v) in zip(surf.levels, ['1 min', '1 hour', '8 hours', '1 day'])})
+    ax.set_ylabel('Number of cores')
+    ax.set_xlabel('Number of actors')
+    ax.set_zlabel('$\log_{{10}}$runtime')
+    ax.grid(True, axis='both', linewidth=0.3)
+    plt.tight_layout()
+    fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
+    fig.savefig(plot_name + '.png', bbox_inches="tight")
+
 
 def main():
     args = parse_args()
@@ -158,6 +190,11 @@ def main():
         plot_complexity_barriers(idesyde_data, "idesyde_total_complexity")
     if len(desyde_data) > 0:
         plot_complexity_barriers(desyde_data, "desyde_total_complexity")
+    # print("-- plotting colormap for complexity --")
+    # if len(idesyde_data) > 0:
+    #     plot_3dcolormap(idesyde_data, "idesyde_total_complexity_3d")
+    # if len(desyde_data) > 0:
+    #     plot_3dcolormap(desyde_data, "desyde_total_complexity_3d")
 
 if __name__ == "__main__":
     main()
