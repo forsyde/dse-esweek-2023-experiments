@@ -97,21 +97,23 @@ def plot_firsts(firsts_data: pd.DataFrame, plot_name = "first_runtime_benchmark"
     first_max_runtime_in_secs = firsts_data[' runtime_first'].max()
     first_agg = firsts_data.groupby(['plat', ' actors'])
     first_avg = first_agg.mean(numeric_only=True)
+    num_plat = max_plat - min_plat
     
     fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
-    for plat in range(min_plat, max_plat + 1):
+    for (i, plat) in enumerate(range(min_plat, max_plat + 1)):
         # for median
         series_avg = first_avg.loc[plat, :]
-        ax.plot(series_avg.index, series_avg[' runtime_first'], linestyle='--', marker='.', linewidth=0.8)
-        ax.set_xlim(min_actors, max_actors)
+        ax.plot(series_avg.index, series_avg[' runtime_first'], linestyle='--', marker='.', linewidth=0.8, color=mpl.colormaps['viridis'](1.0 - float(i)/num_plat), label="\#P = {0}".format(plat))
+        ax.set_xlim(min_actors - 0.5, max_actors + 0.5)
         # ax.set_ylim(desyde_min_runtime_in_secs, desyde_max_runtime_in_secs)
         # ax.set_yticks(range(0, ymax + 1))
         ax.set_xticks(range(min_actors, max_actors + 1))
-        ax.grid(True, axis='both')
+        ax.grid(True, axis='both', linewidth=0.5)
         ax.set_ylabel('Runtime [ms]')
         ax.set_xlabel('Number of actors')
     # ax[-1].set_xlabel('Publication Year')
     # save the plot
+    ax.legend(fontsize=7)
     plt.tight_layout()
     fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
     fig.savefig(plot_name + '.png', bbox_inches="tight")
