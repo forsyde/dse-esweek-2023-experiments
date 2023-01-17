@@ -55,6 +55,7 @@ def plot_quantiles(total_data: pd.DataFrame, plot_name="total_runtime_benchmark"
     total_min_runtime_in_secs = int(total_data[' runtime'].min() / 1000)
     total_max_runtime_in_secs = int(total_data[' runtime'].max() / 1000)
     num_actors = total_max_actors - total_min_actors
+    median_actor = total_max_actors / 2 +  total_min_actors / 2
     num_plat = total_max_plat - total_min_plat
 
     fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
@@ -76,12 +77,14 @@ def plot_quantiles(total_data: pd.DataFrame, plot_name="total_runtime_benchmark"
     # save the plot
     # put a 1 day line
     if total_max_runtime_in_secs >= 60 * 60 * 24:
-        ax.hlines(y=60 * 60 * 24, xmin=total_min_actors - 0.5, xmax=total_max_actors + 0.5, linestyles="dashed", colors="red", lw=0.5)
-        ax.text(num_actors / 2 + 0.5, 60 * 60 * 24 - 58000, "1 Day", color="red")
+        ax.hlines(y=60 * 60 * 24, xmin=total_min_actors - 0.5, xmax=median_actor - 1, linestyles="dashed", colors="red", lw=0.5)
+        ax.text(median_actor, 60 * 60 * 24, "1 Day", color="red", verticalalignment="center", horizontalalignment="center")
+        ax.hlines(y=60 * 60 * 24, xmin=median_actor + 1, xmax=total_max_actors + 0.5, linestyles="dashed", colors="red", lw=0.5)
     # put a 5 days line
     if total_max_runtime_in_secs >= 60 * 60 * 24 * 5:
-        ax.hlines(y=60 * 60 * 24 * 5, xmin=total_min_actors - 0.5, xmax=total_max_actors + 0.5, linestyles="dashed", colors="red", lw=0.5)
-        ax.text(num_actors / 2 + 0.5, 60 * 60 * 24 * 5 - 280000, "5 Days", color="red")
+        ax.hlines(y=60 * 60 * 24 * 5, xmin=total_min_actors - 0.5, xmax=median_actor - 1, linestyles="dashed", colors="red", lw=0.5)
+        ax.text(median_actor, 60 * 60 * 24 * 5, "5 Days", color="red", verticalalignment="center", horizontalalignment="center")
+        ax.hlines(y=60 * 60 * 24 * 5, xmin=median_actor + 1, xmax=total_max_actors + 0.5, linestyles="dashed", colors="red", lw=0.5)
     ax.legend(fontsize=7)
     plt.tight_layout()
     fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
