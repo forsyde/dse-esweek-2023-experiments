@@ -96,8 +96,6 @@ def plot_firsts(firsts_data: pd.DataFrame, plot_name = "first_runtime_benchmark"
     max_plat = firsts_data['plat'].max()
     min_actors = firsts_data[' actors'].min()
     max_actors = firsts_data[' actors'].max()
-    first_min_runtime_in_secs = firsts_data[' runtime_first'].min()
-    first_max_runtime_in_secs = firsts_data[' runtime_first'].max()
     first_agg = firsts_data.groupby(['plat', ' actors'])
     first_avg = first_agg.mean(numeric_only=True)
     num_plat = max_plat - min_plat
@@ -122,12 +120,6 @@ def plot_firsts(firsts_data: pd.DataFrame, plot_name = "first_runtime_benchmark"
     fig.savefig(plot_name + '.png', bbox_inches="tight")
 
 def plot_complexity_barriers(complex_data: pd.DataFrame, plot_name="complexity_barrier"):
-    min_plat = complex_data['plat'].min()
-    max_plat = complex_data['plat'].max()
-    min_actors = complex_data[' actors'].min()
-    max_actors = complex_data[' actors'].max()
-    first_min_runtime_in_secs = complex_data[' runtime_first'].min()
-    first_max_runtime_in_secs = complex_data[' runtime_first'].max()
     max_agg = complex_data.groupby(['plat', ' actors']).max()
     min_agg = complex_data.groupby(['plat', ' actors']).min()
 
@@ -149,6 +141,27 @@ def plot_complexity_barriers(complex_data: pd.DataFrame, plot_name="complexity_b
     fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
     fig.savefig(plot_name + '.png', bbox_inches="tight")
 
+def plot_complexity_barriers_firsts(complex_data: pd.DataFrame, plot_name="complexity_barrier"):
+    max_agg = complex_data.groupby(['plat', ' actors']).max()
+    min_agg = complex_data.groupby(['plat', ' actors']).min()
+
+    fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
+    zvalues = max_agg.reset_index().pivot(index='plat', columns=' actors', values=' runtime_first')
+    xvalues, yvalues = np.meshgrid(zvalues.columns.values, zvalues.index.values)
+    cs = ax.contourf(xvalues, yvalues, zvalues.values / 1000.0, cmap="PuRd")
+    # cs2 = ax.contour(cs, colors='black')
+    # ax.clabel(cs2, levels=cs.levels, fontsize=6, fmt={k: v for (k ,v) in zip(cs.levels, ['1 s', '1 min', '1 hour', '8 hours', '1 day', '5+ days'])})
+    cbar = fig.colorbar(cs)
+    # cbar.add_lines(cs2)
+    # cbar.set_ticklabels(['1 s', '1 min', '1 hour', '8 hours', '1 day', '5+ days'])
+    cbar.set_label("runtime [s]")
+    ax.set_ylabel('Number of cores')
+    ax.set_xlabel('Number of actors')
+    ax.set_xticks(range(2, 14, 2))
+    ax.grid(True, axis='both', linewidth=0.3)
+    plt.tight_layout()
+    fig.savefig(plot_name + '.pdf', transparent=True, bbox_inches="tight")
+    fig.savefig(plot_name + '.png', bbox_inches="tight")
 
 def plot_3dcolormap(data3d: pd.DataFrame, plot_name="3d_plot"):
     min_plat = data3d['plat'].min()
@@ -195,6 +208,9 @@ def main():
         plot_complexity_barriers(idesyde_data, "idesyde_total_complexity")
     if len(desyde_data) > 0:
         plot_complexity_barriers(desyde_data, "desyde_total_complexity")
+    print("-- plotting firsts complexity map --")
+    if len(idesyde_data) > 0:
+        plot_complexity_barriers_firsts(idesyde_data, "idesyde_firsts_complexity")
     # print("-- plotting colormap for complexity --")
     # if len(idesyde_data) > 0:
     #     plot_3dcolormap(idesyde_data, "idesyde_total_complexity_3d")
