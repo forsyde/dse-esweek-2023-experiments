@@ -28,6 +28,15 @@ import java.util.stream.Collectors
 
 val modelHandler = new ForSyDeModelHandler(new ForSyDeSDF3Driver())
 
+val combinationsExp1 = Seq(
+  Seq("c_rasta.hsdf.xml", "d_jpegEnc1.hsdf.xml"),
+  Seq("a_sobel.hsdf.xml", "b_susan.hsdf.xml", "c_rasta.hsdf.xml"),
+  Seq("a_sobel.hsdf.xml", "b_susan.hsdf.xml", "d_jpegEnc1.hsdf.xml"),
+  Seq("a_sobel.hsdf.xml", "c_rasta.hsdf.xml", "d_jpegEnc1.hsdf.xml"),
+  Seq("b_susan.hsdf.xml", "c_rasta.hsdf.xml", "d_jpegEnc1.hsdf.xml"),
+  Seq("a_sobel.hsdf.xml", "b_susan.hsdf.xml", "c_rasta.hsdf.xml", "d_jpegEnc1.hsdf.xml")
+)
+
 val actorRange1 = 2 to 20
 val coreRange1 = 2 to 8
 val svrMultiplicationRange1 = Array(1.0)
@@ -569,8 +578,25 @@ def generate_idesyde_2(): Unit = {
 }
 
 @main
+def generate_idesyde_3(cores: Int = 8): Unit = {
+  val rootFolder = os.pwd / "sdfComparison" 
+  val sdfsFolder = os.pwd / "sdfs"
+  for (comb <- combinationsExp1) {
+    val combinationFolder = rootFolder / comb.map(_.split("\\.").head).reduce(_ + "_" + _)
+    val idesydeFullInput = (combinationFolder / "idesyde_input.fiodl").toNIO
+    val idesydePlatform =
+      generate_platform.makeTDMASingleBusPlatform(cores, 32L)
+    val apps = comb.map(f => modelHandler.loadModel((sdfsFolder / f).toNIO)).reduce(_.merge(_))
+    val dseProblem = idesydePlatform.merge(apps)
+    os.makeDir.all(combinationFolder)
+    modelHandler.writeModel(dseProblem, idesydeFullInput)
+  }
+}
+
+@main
 def generate(): Unit = {
     generate_desyde_1()
     generate_idesyde_1()
     generate_idesyde_2()
+    generate_idesyde_3()
 }

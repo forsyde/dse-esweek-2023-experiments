@@ -172,22 +172,44 @@ def evaluation_2_idesyde(): Unit = {
           (expFolder / "idesyde_input.fiodl").toString()
         )
       ).!
-      // val attrs = Files.readAttributes(
-      //   (idesydeOutput / "solution_0.fiodl").toNIO,
-      //   classOf[BasicFileAttributes]
-      // )
-      // val afterIdesyde = LocalDateTime.now()
-      // val elapsed = ChronoUnit.MILLIS.between(beforeIdesyde, afterIdesyde)
-      // val firstFound = LocalDateTime.ofInstant(
-      //   attrs.lastModifiedTime().toInstant(),
-      //   ZoneId.systemDefault()
-      // )
-      // val firstElapsed = ChronoUnit.MILLIS.between(beforeIdesyde, firstFound)
-      // Files.writeString(
-      //   idesydeBenchmark,
-      //   s"$cores, $actors, $beforeIdesyde, $firstFound, $firstElapsed, $afterIdesyde, $elapsed\n",
-      //   StandardOpenOption.APPEND
-      // )
+    }
+  }
+}
+
+@main
+def evaluation_3_idesyde(): Unit = {
+  for (
+    comb <- generate_experiments.combinationsExp1
+  ) {
+    val aggName = comb.map(_.split("\\.").head).reduce(_ + "_" + _)
+    println(s"-- Solving combination $aggName")
+    val expFolder = os.pwd / "sdfComparison" / aggName
+    val idesydeOutput = expFolder / "idesyde_output"
+    java.nio.file.Files.createDirectories(idesydeOutput.toNIO)
+    if (
+      !Files.exists((expFolder / "idesyde_output.log").toNIO) || Files
+        .lines((expFolder / "idesyde_output.log").toNIO)
+        .noneMatch(l => l.contains("Finished exploration"))
+    ) {
+      (
+        Seq(
+          "java",
+          "-Xmx24G",
+          "-jar",
+          idesydeBin,
+          "-v",
+          "DEBUG",
+          "--decision-model",
+          "ChocoSDFToSChedTileHW2",
+          "--exploration-timeout",
+          "21600",
+          "-o",
+          idesydeOutput.toString(),
+          "--log",
+          (expFolder / "idesyde_output.log").toString(),
+          (expFolder / "idesyde_input.fiodl").toString()
+        )
+      ).!
     }
   }
 }
