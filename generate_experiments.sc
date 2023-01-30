@@ -466,9 +466,12 @@ def generate_idesyde_1(): Unit = {
             sdfAppFile.toString()
           ).!
         }
-        val sdfApp = modelHandler.loadModel(sdfAppFile)
-        val dseProblem = sdfApp.merge(idesydePlatform)
-        modelHandler.writeModel(dseProblem, idesydeFullInput)
+        if (!java.nio.file.Files.exists(idesydeFullInput)) {
+          println("loading " + sdfAppFile)
+          val sdfApp = modelHandler.loadModel(sdfAppFile)
+          val dseProblem = sdfApp.merge(idesydePlatform)
+          modelHandler.writeModel(dseProblem, idesydeFullInput)
+        }
       }
     }
   }
@@ -560,7 +563,7 @@ def generate_idesyde_2(): Unit = {
         val idesydeFullInput = (combinationFolder / "idesyde_input.fiodl").toNIO
         val sdfAppFile = (combinationFolder / "sdfs" / "applications_input.sdf3.xml").toNIO
         os.makeDir.all(combinationFolder / "sdfs")
-        if (!java.nio.file.Files.exists(sdfAppFile)) {
+        if (!java.nio.file.Files.exists(sdfAppFile) || java.nio.file.Files.lines(sdfAppFile).count() == 0) {
           Seq(
             sdf3Gen.toString(),
             "--settings",
@@ -569,9 +572,11 @@ def generate_idesyde_2(): Unit = {
             sdfAppFile.toString()
           ).!
         }
-        val sdfApp = modelHandler.loadModel(sdfAppFile)
-        val dseProblem = sdfApp.merge(idesydePlatform)
-        modelHandler.writeModel(dseProblem, idesydeFullInput)
+        if (!java.nio.file.Files.exists(idesydeFullInput)) {
+          val sdfApp = modelHandler.loadModel(sdfAppFile)
+          val dseProblem = sdfApp.merge(idesydePlatform)
+          modelHandler.writeModel(dseProblem, idesydeFullInput)
+        }
       }
     }
   }
@@ -579,7 +584,7 @@ def generate_idesyde_2(): Unit = {
 
 @main
 def generate_idesyde_3(cores: Int = 8): Unit = {
-  val rootFolder = os.pwd / "sdfComparison" 
+  val rootFolder = os.pwd / "caseStudies" 
   val sdfsFolder = os.pwd / "sdfs"
   for (comb <- combinationsExp1) {
     val combinationFolder = rootFolder / comb.map(_.split("\\.").head).reduce(_ + "_" + _)

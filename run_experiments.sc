@@ -183,7 +183,7 @@ def evaluation_3_idesyde(): Unit = {
   ) {
     val aggName = comb.map(_.split("\\.").head).reduce(_ + "_" + _)
     println(s"-- Solving combination $aggName")
-    val expFolder = os.pwd / "sdfComparison" / aggName
+    val expFolder = os.pwd / "caseStudies" / aggName
     val idesydeOutput = expFolder / "idesyde_output"
     java.nio.file.Files.createDirectories(idesydeOutput.toNIO)
     if (
