@@ -10,6 +10,7 @@ import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import scala.collection.mutable.Queue
 
 val desydeBin = (os.pwd / "desyde").toString()
 val idesydeBin = (os.pwd / "idesyde.jar").toString()
@@ -24,17 +25,15 @@ def evaluation_1_idesyde(): Unit = {
   //     StandardOpenOption.APPEND
   //   )
   // }
-  for (
-    exp <- 1 to generate_experiments.dataPointsPerTuple;
-    cores <- generate_experiments.coreRange1;
-    actors <- generate_experiments.actorRange1;
-    svr <- generate_experiments.svrMultiplicationRange1
-  ) {
+  var queue = Queue((generate_experiments.actorRange1.head, generate_experiments.coreRange1.head, 1, generate_experiments.svrMultiplicationRange1.head))
+  while (!queue.isEmpty) {
+    val (actors, cores, exp, svr) = queue.dequeue()
     println(s"-- Solving combination $actors, $cores, $svr, $exp")
     val expFolder =
       os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).ceil.toInt}" / s"plat_${cores}" / s"exp_$exp"
     val idesydeOutput = expFolder / "idesyde_output"
     java.nio.file.Files.createDirectories(idesydeOutput.toNIO)
+    var elapsed = 0L
     if (
       !Files.exists((expFolder / "idesyde_output.log").toNIO) || Files
         .lines((expFolder / "idesyde_output.log").toNIO)
@@ -60,24 +59,81 @@ def evaluation_1_idesyde(): Unit = {
           (expFolder / "idesyde_input.fiodl").toString()
         )
       ).!
-      // val attrs = Files.readAttributes(
-      //   (idesydeOutput / "solution_0.fiodl").toNIO,
-      //   classOf[BasicFileAttributes]
-      // )
-      // val afterIdesyde = LocalDateTime.now()
-      // val elapsed = ChronoUnit.MILLIS.between(beforeIdesyde, afterIdesyde)
-      // val firstFound = LocalDateTime.ofInstant(
-      //   attrs.lastModifiedTime().toInstant(),
-      //   ZoneId.systemDefault()
-      // )
-      // val firstElapsed = ChronoUnit.MILLIS.between(beforeIdesyde, firstFound)
-      // Files.writeString(
-      //   idesydeBenchmark,
-      //   s"$cores, $actors, $exp, $beforeIdesyde, $firstFound, $firstElapsed, $afterIdesyde, $elapsed\n",
-      //   StandardOpenOption.APPEND
-      // )
+      val afterIdesyde = LocalDateTime.now()
+      elapsed = ChronoUnit.DAYS.between(beforeIdesyde, afterIdesyde)
+    }
+    if (elapsed < 5L) {
+      // one extra actor
+      if (actors < generate_experiments.actorRange1.max) {
+        queue = queue.addOne((generate_experiments.actorRange1.filter(_ > actors).head, cores, exp, svr))
+      }
+      if (cores < generate_experiments.coreRange1.max) {
+        queue = queue.addOne((actors, generate_experiments.actorRange1.filter(_ > cores).head, exp, svr))
+      }
+      if (exp < generate_experiments.dataPointsPerTuple) {
+        queue = queue.addOne((actors, cores, exp + 1, svr))
+      }
+      if (svr < generate_experiments.svrMultiplicationRange1.max) {
+        queue = queue.addOne((actors, cores, exp, generate_experiments.svrMultiplicationRange1.filter(_ > svr).head))
+      }
     }
   }
+  // for (
+  //   exp <- 1 to generate_experiments.dataPointsPerTuple;
+  //   cores <- generate_experiments.coreRange1;
+  //   actors <- generate_experiments.actorRange1;
+  //   svr <- generate_experiments.svrMultiplicationRange1
+  // ) {
+  //   println(s"-- Solving combination $actors, $cores, $svr, $exp")
+  //   val expFolder =
+  //     os.pwd / "sdfComparison" / s"actors_${actors}" / s"svr_${(svr * 100).ceil.toInt}" / s"plat_${cores}" / s"exp_$exp"
+  //   val idesydeOutput = expFolder / "idesyde_output"
+  //   java.nio.file.Files.createDirectories(idesydeOutput.toNIO)
+  //   if (
+  //     !Files.exists((expFolder / "idesyde_output.log").toNIO) || Files
+  //       .lines((expFolder / "idesyde_output.log").toNIO)
+  //       .noneMatch(l => l.contains("Finished exploration"))
+  //   ) {
+  //     // val beforeIdesyde = LocalDateTime.now()
+  //     (
+  //       Seq(
+  //         "java",
+  //         "-Xmx16G",
+  //         "-jar",
+  //         idesydeBin,
+  //         "-v",
+  //         "DEBUG",
+  //         "--exploration-timeout",
+  //         "432000",
+  //         "--decision-model",
+  //         "ChocoSDFToSChedTileHW2",
+  //         "-o",
+  //         idesydeOutput.toString(),
+  //         "--log",
+  //         (expFolder / "idesyde_output.log").toString(),
+  //         (expFolder / "idesyde_input.fiodl").toString()
+  //       )
+  //     ).!
+  //     // val afterIdesyde = LocalDateTime.now()
+  //     // val elapsed = ChronoUnit.DAYS.between(beforeIdesyde, afterIdesyde)
+  //     // val attrs = Files.readAttributes(
+  //     //   (idesydeOutput / "solution_0.fiodl").toNIO,
+  //     //   classOf[BasicFileAttributes]
+  //     // )
+  //     // val afterIdesyde = LocalDateTime.now()
+  //     // val elapsed = ChronoUnit.MILLIS.between(beforeIdesyde, afterIdesyde)
+  //     // val firstFound = LocalDateTime.ofInstant(
+  //     //   attrs.lastModifiedTime().toInstant(),
+  //     //   ZoneId.systemDefault()
+  //     // )
+  //     // val firstElapsed = ChronoUnit.MILLIS.between(beforeIdesyde, firstFound)
+  //     // Files.writeString(
+  //     //   idesydeBenchmark,
+  //     //   s"$cores, $actors, $exp, $beforeIdesyde, $firstFound, $firstElapsed, $afterIdesyde, $elapsed\n",
+  //     //   StandardOpenOption.APPEND
+  //     // )
+  //   }
+  // }
 }
 
 @main
