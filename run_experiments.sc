@@ -26,8 +26,8 @@ def evaluation_1_idesyde(): Unit = {
   // }
   for (
     exp <- 1 to generate_experiments.dataPointsPerTuple;
-    actors <- generate_experiments.actorRange1;
     cores <- generate_experiments.coreRange1;
+    actors <- generate_experiments.actorRange1;
     svr <- generate_experiments.svrMultiplicationRange1
   ) {
     println(s"-- Solving combination $actors, $cores, $svr, $exp")
@@ -44,6 +44,7 @@ def evaluation_1_idesyde(): Unit = {
       (
         Seq(
           "java",
+          "-Xmx16G",
           "-jar",
           idesydeBin,
           "-v",
@@ -156,7 +157,7 @@ def evaluation_2_idesyde(): Unit = {
       (
         Seq(
           "java",
-          "-Xmx24G",
+          "-Xmx16G",
           "-jar",
           idesydeBin,
           "-v",
