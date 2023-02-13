@@ -34,7 +34,9 @@ val combinationsExp1 = Seq(
   Seq("a_sobel.hsdf.xml", "b_susan.hsdf.xml", "d_jpegEnc1.hsdf.xml"),
   Seq("a_sobel.hsdf.xml", "c_rasta.hsdf.xml", "d_jpegEnc1.hsdf.xml"),
   Seq("b_susan.hsdf.xml", "c_rasta.hsdf.xml", "d_jpegEnc1.hsdf.xml"),
-  Seq("a_sobel.hsdf.xml", "b_susan.hsdf.xml", "c_rasta.hsdf.xml", "d_jpegEnc1.hsdf.xml")
+  Seq("a_sobel.hsdf.xml", "b_susan.hsdf.xml", "c_rasta.hsdf.xml", "d_jpegEnc1.hsdf.xml"),
+  Seq("a_sobel.hsdf.xml"),
+  Seq("g10_3_cycl.sdf.xml")
 )
 
 val actorRange1 = 2 to 20

@@ -26,6 +26,7 @@ def evaluation_1_idesyde(): Unit = {
   //   )
   // }
   var queue = Queue((generate_experiments.actorRange1.head, generate_experiments.coreRange1.head, 1, generate_experiments.svrMultiplicationRange1.head))
+  var solved = Queue[(Int, Int, Int, Double)]()
   while (!queue.isEmpty) {
     val (actors, cores, exp, svr) = queue.dequeue()
     println(s"-- Solving combination $actors, $cores, $svr, $exp")
@@ -65,18 +66,31 @@ def evaluation_1_idesyde(): Unit = {
     if (elapsed < 5L) {
       // one extra actor
       if (actors < generate_experiments.actorRange1.max) {
-        queue = queue.addOne((generate_experiments.actorRange1.filter(_ > actors).head, cores, exp, svr))
+        val next = (generate_experiments.actorRange1.filter(_ > actors).head, cores, exp, svr)
+        if (!solved.contains(next) && !queue.contains(next)) {
+          queue += next
+        }
       }
       if (cores < generate_experiments.coreRange1.max) {
-        queue = queue.addOne((actors, generate_experiments.actorRange1.filter(_ > cores).head, exp, svr))
+        val next = (actors, generate_experiments.actorRange1.filter(_ > cores).head, exp, svr)
+        if (!solved.contains(next) && !queue.contains(next)) {
+          queue += next
+        }
       }
       if (exp < generate_experiments.dataPointsPerTuple) {
-        queue = queue.addOne((actors, cores, exp + 1, svr))
+        val next = (actors, cores, exp + 1, svr)
+        if (!solved.contains(next) && !queue.contains(next)) {
+          queue += next
+        }
       }
       if (svr < generate_experiments.svrMultiplicationRange1.max) {
-        queue = queue.addOne((actors, cores, exp, generate_experiments.svrMultiplicationRange1.filter(_ > svr).head))
+        val next = (actors, cores, exp, generate_experiments.svrMultiplicationRange1.filter(_ > svr).head)
+        if (!solved.contains(next) && !queue.contains(next)) {
+          queue += next
+        }
       }
     }
+    solved = solved.addOne((actors, cores, exp, svr))
   }
   // for (
   //   exp <- 1 to generate_experiments.dataPointsPerTuple;
