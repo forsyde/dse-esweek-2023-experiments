@@ -592,7 +592,7 @@ def generate_idesyde_3(cores: Int = 8): Unit = {
     val combinationFolder = rootFolder / comb.map(_.split("\\.").head).reduce(_ + "_" + _)
     val idesydeFullInput = (combinationFolder / "idesyde_input.fiodl").toNIO
     val idesydePlatform =
-      generate_platform.makeTDMASingleBusPlatform(cores, 32L)
+      generate_platform.makeTDMASingleBusPlatform(cores, 32L, 1L, 1.0)
     val apps = comb.map(f => modelHandler.loadModel((sdfsFolder / f).toNIO)).reduce(_.merge(_))
     val dseProblem = idesydePlatform.merge(apps)
     os.makeDir.all(combinationFolder)

@@ -14,7 +14,7 @@ import forsyde.io.java.typed.viewers.visualization.GreyBox
 import forsyde.io.java.typed.viewers.platform.runtime.StaticCyclicScheduler
 import forsyde.io.java.typed.viewers.decision.Allocated
 
-def makeTDMASingleBusPlatform(nCores: Int = 8, flitSize: Long = 32L): ForSyDeSystemGraph = {
+def makeTDMASingleBusPlatform(nCores: Int = 8, flitSize: Long = 32L, cpuFreq: Long = 50000000, cpuOpsPerSec: Double = 1.0 / 65.0): ForSyDeSystemGraph = {
     val m      = new ForSyDeSystemGraph()
     var niMesh = Array.fill[InstrumentedCommunicationModule](nCores)(null)
     // put the microblaze elements
@@ -30,21 +30,18 @@ def makeTDMASingleBusPlatform(nCores: Int = 8, flitSize: Long = 32L): ForSyDeSys
       )
       val scheduler  = StaticCyclicScheduler.enforce(m.newVertex("micro_blaze_os" + i))
       val niSchedule = StaticCyclicScheduler.enforce(m.newVertex("micro_blaze_ni_slots" + i))
-      proc.setOperatingFrequencyInHertz(50000000L)
-      mem.setOperatingFrequencyInHertz(50000000L)
+      proc.setOperatingFrequencyInHertz(cpuFreq)
+      mem.setOperatingFrequencyInHertz(cpuFreq)
       mem.setSpaceInBits(1048576L * 8L)
-      ni.setOperatingFrequencyInHertz(50000000L)
+      ni.setOperatingFrequencyInHertz(cpuFreq)
       ni.setFlitSizeInBits(flitSize)
       ni.setMaxConcurrentFlits(nCores)
       ni.setMaxCyclesPerFlit(nCores)
       ni.setInitialLatency(0L)
       proc.setModalInstructionsPerCycle(
         Map(
-          "eco" -> Map(
-            "all" -> (1.0 / 65.0).asInstanceOf[java.lang.Double]
-          ).asJava,
           "default" -> Map(
-            "all" -> (1.0 / 13.0).asInstanceOf[java.lang.Double]
+            "all" -> cpuOpsPerSec.asInstanceOf[java.lang.Double]
           ).asJava
         ).asJava
       )
@@ -114,7 +111,7 @@ def makeTDMASingleBusPlatform(nCores: Int = 8, flitSize: Long = 32L): ForSyDeSys
     // and now the bus
     val bus      = InstrumentedCommunicationModule.enforce(m.newVertex("TDMBus"))
     val busSched = StaticCyclicScheduler.enforce(m.newVertex("busSched"))
-    bus.setOperatingFrequencyInHertz(666667000L)
+    bus.setOperatingFrequencyInHertz(cpuFreq)
     bus.setFlitSizeInBits(flitSize)
     bus.setMaxConcurrentFlits(nCores)
     bus.setMaxCyclesPerFlit(nCores)
