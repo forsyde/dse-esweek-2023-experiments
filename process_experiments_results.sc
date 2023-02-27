@@ -29,13 +29,13 @@ val combinationsExp1Names = Vector(
   "Syn"
 )
 
-def recompute_idesyde_2(): Unit = {
+def recompute_idesyde_1(): Unit = {
   if (!Files.exists(idesydeBenchmark)) {
     Files.createFile(idesydeBenchmark)
   }
   Files.writeString(
     idesydeBenchmark,
-    "plat, actors, svr, exp, start, first, runtime_first, last, runtime_last, stop, runtime, mean_time_to_improvement\n",
+    "plat, actors, svr, exp, firings, start, first, runtime_first, last, runtime_last, stop, runtime, mean_time_to_improvement\n",
     StandardOpenOption.WRITE,
     StandardOpenOption.TRUNCATE_EXISTING
   )
@@ -85,7 +85,7 @@ def recompute_idesyde_2(): Unit = {
         else 0L
       Files.writeString(
         idesydeBenchmark,
-        s"$cores, $actors, ${(svr * 100).toInt}, $exp, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime, $meanTimeToImprovement\n",
+        s"$cores, $actors, ${(svr * 100).toInt}, $exp, ${(actors * svr).toInt}, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime, $meanTimeToImprovement\n",
         StandardOpenOption.WRITE,
         StandardOpenOption.APPEND
       )
@@ -99,7 +99,7 @@ def recompute_desyde_1(): Unit = {
   }
   Files.writeString(
     desydeBenchmark,
-    "plat, actors, svr, exp, start, first, runtime_first, last, runtime_last, stop, runtime\n",
+    "plat, actors, svr, exp, firings, start, first, runtime_first, last, runtime_last, stop, runtime\n",
     StandardOpenOption.WRITE,
     StandardOpenOption.TRUNCATE_EXISTING
   )
@@ -142,7 +142,71 @@ def recompute_desyde_1(): Unit = {
       val runtime = ChronoUnit.MILLIS.between(startingTime, endTime)
       Files.writeString(
         desydeBenchmark,
-        s"$cores, $actors, ${(svr * 100).toInt}, $exp, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime\n",
+        s"$cores, $actors, ${(svr * 100).toInt}, $exp, ${(actors * svr).toInt}, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime\n",
+        StandardOpenOption.WRITE,
+        StandardOpenOption.APPEND
+      )
+    }
+  }
+}
+
+def recompute_idesyde_2(): Unit = {
+  if (!Files.exists(idesydeScalBenchmark)) {
+    Files.createFile(idesydeScalBenchmark)
+  }
+  Files.writeString(
+    idesydeScalBenchmark,
+    "plat, actors, svr, exp, firings, start, first, runtime_first, last, runtime_last, stop, runtime, mean_time_to_improvement\n",
+    StandardOpenOption.WRITE,
+    StandardOpenOption.TRUNCATE_EXISTING
+  )
+  for (
+    actors <- generate_experiments.actorRange2;
+    svr <- generate_experiments.svrMultiplicationRange2;
+    cores <- generate_experiments.coreRange2;
+    exp <- 1 to generate_experiments.dataPointsPerTuple
+  ) {
+    // println((actors, cores, exp).toString())
+    val outFile =
+      (os.pwd / "sdfScalability" / s"actors_${actors}" / s"svr_${(svr * 100).toInt}" / s"plat_${cores}" / s"exp_$exp" / "idesyde_output.log").toNIO
+    if (Files.exists(outFile)) {
+      var startingTime = LocalDateTime.now()
+      var firstTime = LocalDateTime.now()
+      var lastTime = LocalDateTime.now()
+      var endTime = LocalDateTime.now()
+      var timesToImprovement = Buffer[Long]()
+      Files
+        .lines(outFile)
+        .forEach(l => {
+          if (l.contains("decision model(s) and explorer(s) chosen")) {
+            startingTime = LocalDateTime
+              .parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
+          } else if (l.contains("solution_0")) {
+            // println(l)
+            firstTime = LocalDateTime
+              .parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
+            lastTime = LocalDateTime
+              .parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
+          } else if (l.contains("writing solution")) {
+            val now = LocalDateTime
+              .parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
+            timesToImprovement += ChronoUnit.MILLIS.between(lastTime, now)
+            lastTime = now
+          } else if (l.contains("Finished exploration")) {
+            endTime = LocalDateTime
+              .parse(l.subSequence(0, 23), idesydeDateTimeFormatter)
+          }
+        })
+      val runtimeFirst = ChronoUnit.MILLIS.between(startingTime, firstTime)
+      val runtimeLast = ChronoUnit.MILLIS.between(startingTime, lastTime)
+      val runtime = ChronoUnit.MILLIS.between(startingTime, endTime)
+      val meanTimeToImprovement =
+        if (!timesToImprovement.isEmpty) then
+          timesToImprovement.sum / timesToImprovement.size
+        else 0L
+      Files.writeString(
+        idesydeScalBenchmark,
+        s"$cores, $actors, ${(svr * 100).toInt}, $exp, ${(actors * svr).toInt}, $startingTime, $firstTime, $runtimeFirst, $lastTime, $runtimeLast, $endTime, $runtime, $meanTimeToImprovement\n",
         StandardOpenOption.WRITE,
         StandardOpenOption.APPEND
       )
@@ -182,7 +246,7 @@ def recompute_idesyde_3_table(): Unit = {
                 (
                   Duration.between(startingTime, lastTime),
                   m.group(1).toInt,
-                  1000 * m.group(2).toDouble / m.group(3).toDouble
+                  m.group(2).toDouble / m.group(3).toDouble
                 )
               )
             }
@@ -196,16 +260,17 @@ def recompute_idesyde_3_table(): Unit = {
       val firstSol = bestSolutions.minByOption((time, _, _) => time).getOrElse((Duration.ZERO, 0, 0.0))
       val bestForCores = bestSolutions.minByOption((time, n, l) => (n, l, time)).getOrElse((Duration.ZERO, 0, 0.0))
       val bestForTh = bestSolutions.minByOption((time, n, l) => (l, n, time)).getOrElse((Duration.ZERO, 0, 0.0))
-      println(s" & ${formatDuration(firstSol._1)} & ${formatDuration(bestForCores._1)} & ${formatDuration(bestForTh._1)} & \\\\")
-      println(s" ${combinationsExp1Names(i)}${if (isTimeOut) then "" else "$^*$"} & ${firstSol._2} cores & ${bestForCores._2} cores & ${bestForTh._2} cores & \\\\")
-      println(f" & ${1000.0 / firstSol._3}%4.2f exe/ms & ${ 1000.0 / bestForCores._3}%4.2f exe/ms & ${1000.0 / bestForTh._3}%4.2f exe/ms & \\\\")
-      println(" & & & & \\\\")
+      println(s" & & ${formatDuration(firstSol._1)} & ${formatDuration(bestForCores._1)} & ${formatDuration(bestForTh._1)} & \\\\")
+      println(s" ${combinationsExp1Names(i)}${if (isTimeOut) then "" else "$^*$"} & ${bestSolutions.size} & ${firstSol._2} cores & ${bestForCores._2} cores & ${bestForTh._2} cores & \\\\")
+      println(f" & & ${firstSol._3}%.0f s/iter & ${ bestForCores._3}%.0f s/iter & ${bestForTh._3}%.0f s/iter & \\\\")
+      println(" & & & & & \\\\")
     }
   }
 }
 
 @main
 def recomputeAll(): Unit = {
+  recompute_idesyde_1()
   recompute_idesyde_2()
   recompute_desyde_1()
 }

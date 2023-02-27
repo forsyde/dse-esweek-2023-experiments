@@ -189,11 +189,11 @@ def plot_complexity_barriers(
     is_log=False,
     plot_name="complexity_barrier",
 ):
-    max_agg = complex_data.groupby(["plat", " actors"]).max()
-    min_agg = complex_data.groupby(["plat", " actors"]).min()
+    max_agg = complex_data.groupby(["plat", " firings"]).max()
+    min_agg = complex_data.groupby(["plat", " firings"]).min()
 
     fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
-    zvalues = max_agg.reset_index().pivot(index="plat", columns=" actors", values=zCol)
+    zvalues = max_agg.reset_index().pivot(index="plat", columns=" firings", values=zCol)
     xvalues, yvalues = np.meshgrid(zvalues.columns.values, zvalues.index.values)
     cs = None
     if zLevels and is_log:
@@ -225,8 +225,8 @@ def plot_complexity_barriers(
         cbar.set_ticklabels(zLabels)
     if zAxisLabel:
         cbar.set_label(zAxisLabel)
-    ax.set_ylabel("Number of cores")
-    ax.set_xlabel("Number of actors")
+    ax.set_ylabel("Number of cores ($|P|$)")
+    ax.set_xlabel("Number of firings ($q_G$)")
     # ax.set_xticks(range(2, 14, 2))
     ax.grid(True, axis="both", linewidth=0.3)
     plt.tight_layout()
@@ -237,12 +237,12 @@ def plot_complexity_barriers(
 def plot_complexity_barriers_firsts(
     complex_data: pd.DataFrame, plot_name="complexity_barrier"
 ):
-    max_agg = complex_data.groupby(["plat", " actors"]).max()
-    min_agg = complex_data.groupby(["plat", " actors"]).min()
+    max_agg = complex_data.groupby(["plat", " firings"]).max()
+    min_agg = complex_data.groupby(["plat", " firings"]).min()
 
     fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
     zvalues = max_agg.reset_index().pivot(
-        index="plat", columns=" actors", values=" runtime_first"
+        index="plat", columns=" firings", values=" runtime_first"
     )
     xvalues, yvalues = np.meshgrid(zvalues.columns.values, zvalues.index.values)
     cs = ax.contourf(xvalues, yvalues, zvalues.values / 1000.0, cmap="PuRd")
@@ -253,7 +253,7 @@ def plot_complexity_barriers_firsts(
     # cbar.set_ticklabels(['1 s', '1 min', '1 hour', '8 hours', '1 day', '5+ days'])
     cbar.set_label("runtime [s]")
     ax.set_ylabel("Number of cores")
-    ax.set_xlabel("Number of actors")
+    ax.set_xlabel("Number of firings")
     ax.set_xticks(range(2, 14, 2))
     ax.grid(True, axis="both", linewidth=0.3)
     plt.tight_layout()
@@ -295,6 +295,7 @@ def plot_3dcolormap(data3d: pd.DataFrame, plot_name="3d_plot"):
 def main():
     args = parse_args()
     idesyde_data = pd.read_csv("idesyde_benchmark.csv")
+    idesyde_scal_data = pd.read_csv("idesyde_scal_benchmark.csv")
     # desyde_data = pd.read_csv("desyde_benchmark.csv")
     # if not args.no_quantiles:
     #     print("-- plotting quantiles --")
@@ -340,7 +341,7 @@ def main():
     print("-- plotting firsts complexity map --")
     if len(idesyde_data) > 0:
         plot_complexity_barriers(
-            idesyde_data,
+            pd.concat([idesyde_data, idesyde_scal_data]),
             zCol=" runtime_first",
             zAxisLabel="Time to first [ms]",
             # zLevels=[
@@ -368,7 +369,7 @@ def main():
     print("-- plotting meat-time-to-improv complexity map --")
     if len(idesyde_data) > 0:
         plot_complexity_barriers(
-            idesyde_data,
+            pd.concat([idesyde_data, idesyde_scal_data]),
             zCol=" mean_time_to_improvement",
             zAxisLabel="Mean time to improvement [ms]",
             zLevels=[

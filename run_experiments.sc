@@ -209,10 +209,10 @@ def evaluation_2_idesyde(): Unit = {
   //   )
   // }
   for (
+    svr <- generate_experiments.svrMultiplicationRange2;
     exp <- 1 to generate_experiments.dataPointsPerTuple;
     cores <- generate_experiments.coreRange2;
-    actors <- generate_experiments.actorRange2;
-    svr <- generate_experiments.svrMultiplicationRange2
+    actors <- generate_experiments.actorRange2
   ) {
     println(s"-- Solving combination A $actors, SVR $svr, P $cores, EXP $exp")
     val expFolder =
