@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from matplotlib.legend_handler import HandlerTuple
 
 ### Baseline
 img_ratio = 0.8  # golden ratio - 1 is 0.618033988749894
@@ -22,162 +23,89 @@ mpl.rcParams.update(
 )
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        prog="process_data",
-        usage="Generate the required data",
-        description="""A handy script to choose which parts of the results to (re)generate.""",
-    )
-    parser.add_argument(
-        "--no-quantiles",
-        action="store_true",
-        help="If the quantiles calculation and plotting should be skippped.",
-    )
-    parser.add_argument(
-        "--no-firsts",
-        action="store_true",
-        help="If the time-to-first calculation and plotting should be skippped.",
-    )
-
-    return parser.parse_args()
-
-
-def plot_quantiles(total_data: pd.DataFrame, plot_name="total_runtime_benchmark"):
-    total_agg = total_data.groupby(
-        ["plat", " actors"]
+def plot_firings(
+    total_data: pd.DataFrame,
+    xMax=None,
+    zCol=" runtime",
+    zColLabel="Total runtime",
+    zScale=0.001,
+    plot_name="total_runtime_benchmark",
+    isLog=False,
+    timeoutInMillis=1000 * 30 * 60,
+    drawTimeoutLine=False,
+    isMax=True,
+    xLabel="Number of firings ($\sum q_G$)"
+):
+    filtered_data = total_data[total_data[" firings"] <= xMax] if xMax else total_data
+    total_agg = filtered_data.groupby(
+        ["plat", " firings"]
     )  # the space before actors is significant because of header names
-
-    total_quantiles = total_agg.quantile(quantiles_bounds, numeric_only=True)
-    total_max = total_agg.max(numeric_only=True)
-    total_min_plat = total_data["plat"].min()
-    total_max_plat = total_data["plat"].max()
-    total_min_actors = total_data[" actors"].min()
-    total_max_actors = total_data[" actors"].max()
-    total_min_runtime_in_secs = int(total_data[" runtime"].min() / 1000)
-    total_max_runtime_in_secs = int(total_data[" runtime"].max() / 1000)
-    num_actors = total_max_actors - total_min_actors
-    median_actor = total_max_actors / 2 + total_min_actors / 2
+    total_reduced = total_agg.max(numeric_only=True) if isMax else total_agg.mean(numeric_only=True)
+    total_min_plat = filtered_data["plat"].min()
+    total_max_plat = filtered_data["plat"].max()
+    # total_min_actors = filtered_data[" firings"].min()
+    # total_max_actors = filtered_data[" firings"].max()
+    # total_min_runtime_in_secs = int(total_data[" runtime"].min() * zScale)
+    # total_max_runtime_in_secs = int(total_data[" runtime"].max() * zScale)
+    # num_actors = total_max_actors - total_min_actors
+    # median_actor = total_max_actors / 2 + total_min_actors / 2
     num_plat = total_max_plat - total_min_plat
 
     fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
+    handles = []
     for i, plat in enumerate(range(total_min_plat, total_max_plat + 1)):
-        series_max = total_max.loc[plat, :]
-        # total_for_plat = total_data[total_data['plat'].eq(plat)]
-        # colors = [mpl.colormaps['inferno'](1.0 - float(i)/num_plat) for _ in total_for_plat[' actors']]
-        # ax.scatter(total_for_plat[' actors'] - 0.5 + float(i)/num_plat, total_for_plat[' runtime'] / 1000.0, s=1.0, c=colors, linestyle='--', marker="o", alpha=0.5, label="plat = {0}".format(i))
-        ax.plot(
-            series_max.index,
-            series_max[" runtime"] / 1000.0,
-            linestyle="--",
-            lw=0.8,
+        # use one type of marker for completions, and another for time-outs
+        series_max = filtered_data[filtered_data["plat"] == plat]
+        series_max_timed_out_no_sol = series_max[(series_max[" runtime"] >= timeoutInMillis) & (series_max[" nsols"] == 0)]
+        series_max_timed_out = series_max[(series_max[" runtime"] >= timeoutInMillis) & (series_max[" nsols"] > 0)]
+        series_max_completed = series_max[series_max[" runtime"] < timeoutInMillis]
+        # if lineStyle:
+        #     ax.scatter(
+        #         series_max[" firings"],
+        #         series_max[zCol] * zScale,
+        #         linestyle=lineStyle,
+        #         lw=0.8,
+        #         color=mpl.colormaps["viridis"](1.0 - float(i) / num_plat),
+        #         label="$|P| = {0}$".format(plat) if lineStyle else None,
+        #         marker="None",
+        #     )
+        p1 = ax.scatter(
+            series_max_completed[" firings"],
+            series_max_completed[zCol] * zScale,
             color=mpl.colormaps["viridis"](1.0 - float(i) / num_plat),
-            label="\#P = {0}".format(plat),
             marker=".",
         )
-        ax.set_xlim(total_min_actors - 0.5, total_max_actors + 0.5)
+        p2 = ax.scatter(
+            series_max_timed_out[" firings"],
+            series_max_timed_out[zCol] * zScale,
+            12.0,
+            color=mpl.colormaps["viridis"](1.0 - float(i) / num_plat),
+            marker="^",
+        )
+        p3 = ax.scatter(
+            series_max_timed_out_no_sol[" firings"],
+            series_max_timed_out_no_sol[zCol] * zScale,
+            12.0,
+            color=mpl.colormaps["viridis"](1.0 - float(i) / num_plat),
+            marker="x",
+        )
+        handles.append((p1, p2, p3))
+        # ax.set_xlim(total_min_actors - 0.5, total_max_actors + 0.5)
         # ax.set_ylim(total_min_runtime_in_secs, total_max_runtime_in_secs)
         # ax.set_yticks(range(0, ymax + 1))
-        ax.set_yscale("log")
-        ax.set_xticks(range(total_min_actors, total_max_actors + 1))
+        if isLog:
+            ax.set_yscale("log")
+        # ax.set_xticks(range(total_min_actors, total_max_actors + 1))
         ax.grid(True, axis="both", linewidth=0.5)
-        ax.set_ylabel("Runtime [s]")
-        ax.set_xlabel("Number of actors")
-    # ax[-1].set_xlabel('Publication Year')
+        ax.set_ylabel(zColLabel)
+        ax.set_xlabel(xLabel)
+    if drawTimeoutLine:
+        ax.axhline(y = timeoutInMillis * zScale, color='r', lw=0.4, linestyle="dashdot")
     # save the plot
-    # put a 1 day line
-    if total_max_runtime_in_secs >= 60 * 60 * 24:
-        ax.hlines(
-            y=60 * 60 * 24,
-            xmin=total_min_actors - 0.5,
-            xmax=median_actor - 1,
-            linestyles="dashed",
-            colors="red",
-            lw=0.5,
-        )
-        ax.text(
-            median_actor,
-            60 * 60 * 24,
-            "1 Day",
-            color="red",
-            verticalalignment="center",
-            horizontalalignment="center",
-        )
-        ax.hlines(
-            y=60 * 60 * 24,
-            xmin=median_actor + 1,
-            xmax=total_max_actors + 0.5,
-            linestyles="dashed",
-            colors="red",
-            lw=0.5,
-        )
-    # put a 5 days line
-    if total_max_runtime_in_secs >= 60 * 60 * 24 * 5:
-        ax.hlines(
-            y=60 * 60 * 24 * 5,
-            xmin=total_min_actors - 0.5,
-            xmax=median_actor - 1,
-            linestyles="dashed",
-            colors="red",
-            lw=0.5,
-        )
-        ax.text(
-            median_actor,
-            60 * 60 * 24 * 5,
-            "5 Days",
-            color="red",
-            verticalalignment="center",
-            horizontalalignment="center",
-        )
-        ax.hlines(
-            y=60 * 60 * 24 * 5,
-            xmin=median_actor + 1,
-            xmax=total_max_actors + 0.5,
-            linestyles="dashed",
-            colors="red",
-            lw=0.5,
-        )
-    ax.legend(fontsize=7)
+    ax.legend(handles, ["$|P| = {0}$".format(plat) for plat in range(total_min_plat, total_max_plat + 1)], handler_map={tuple: HandlerTuple(ndivide=None)}, fontsize=7)
     plt.tight_layout()
     fig.savefig(plot_name + ".pdf", transparent=True, bbox_inches="tight")
-    fig.savefig(plot_name + ".png", bbox_inches="tight")
-
-
-# ---------------------- FIRST SOLUTIONS ----
-def plot_firsts(firsts_data: pd.DataFrame, plot_name="first_runtime_benchmark"):
-    min_plat = firsts_data["plat"].min()
-    max_plat = firsts_data["plat"].max()
-    min_actors = firsts_data[" actors"].min()
-    max_actors = firsts_data[" actors"].max()
-    first_agg = firsts_data.groupby(["plat", " actors"])
-    first_avg = first_agg.mean(numeric_only=True)
-    num_plat = max_plat - min_plat
-
-    fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
-    for i, plat in enumerate(range(min_plat, max_plat + 1)):
-        # for median
-        series_avg = first_avg.loc[plat, :]
-        ax.plot(
-            series_avg.index,
-            series_avg[" runtime_first"],
-            linestyle="--",
-            marker=".",
-            linewidth=0.8,
-            color=mpl.colormaps["viridis"](1.0 - float(i) / num_plat),
-            label="\#P = {0}".format(plat),
-        )
-        ax.set_xlim(min_actors - 0.5, max_actors + 0.5)
-        # ax.set_ylim(desyde_min_runtime_in_secs, desyde_max_runtime_in_secs)
-        # ax.set_yticks(range(0, ymax + 1))
-        ax.set_xticks(range(min_actors, max_actors + 1))
-        ax.grid(True, axis="both", linewidth=0.5)
-        ax.set_ylabel("Runtime [ms]")
-        ax.set_xlabel("Number of actors")
-    # ax[-1].set_xlabel('Publication Year')
-    # save the plot
-    ax.legend(fontsize=7)
-    plt.tight_layout()
-    fig.savefig(plot_name + ".pdf", transparent=True, bbox_inches="tight")
-    fig.savefig(plot_name + ".png", bbox_inches="tight")
+    # fig.savefig(plot_name + ".png", bbox_inches="tight")
 
 
 def plot_complexity_barriers(
@@ -187,9 +115,16 @@ def plot_complexity_barriers(
     zAxisLabel="",
     zLabels=[],
     is_log=False,
+    xMax=None,
     plot_name="complexity_barrier",
 ):
-    max_agg = complex_data.groupby(["plat", " firings"]).max()
+    max_agg = (
+        complex_data.groupby(["plat", " firings"]).max()
+        if not xMax
+        else complex_data[complex_data[" firings"] <= xMax]
+        .groupby(["plat", " firings"])
+        .max()
+    )
     min_agg = complex_data.groupby(["plat", " firings"]).min()
 
     fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
@@ -226,7 +161,9 @@ def plot_complexity_barriers(
     if zAxisLabel:
         cbar.set_label(zAxisLabel)
     ax.set_ylabel("Number of cores ($|P|$)")
-    ax.set_xlabel("Number of firings ($q_G$)")
+    ax.set_xlabel("Number of firings ($\sum q_G$)")
+    # if xMax:
+    #     ax.set_xlim((xvalues.min(), xMax))
     # ax.set_xticks(range(2, 14, 2))
     ax.grid(True, axis="both", linewidth=0.3)
     plt.tight_layout()
@@ -234,81 +171,21 @@ def plot_complexity_barriers(
     fig.savefig(plot_name + ".png", bbox_inches="tight")
 
 
-def plot_complexity_barriers_firsts(
-    complex_data: pd.DataFrame, plot_name="complexity_barrier"
-):
-    max_agg = complex_data.groupby(["plat", " firings"]).max()
-    min_agg = complex_data.groupby(["plat", " firings"]).min()
-
-    fig, ax = plt.subplots(1, 1, figsize=(img_width_in_inches, img_height_in_inches))
-    zvalues = max_agg.reset_index().pivot(
-        index="plat", columns=" firings", values=" runtime_first"
-    )
-    xvalues, yvalues = np.meshgrid(zvalues.columns.values, zvalues.index.values)
-    cs = ax.contourf(xvalues, yvalues, zvalues.values / 1000.0, cmap="PuRd")
-    # cs2 = ax.contour(cs, colors='black')
-    # ax.clabel(cs2, levels=cs.levels, fontsize=6, fmt={k: v for (k ,v) in zip(cs.levels, ['1 s', '1 min', '1 hour', '8 hours', '1 day', '5+ days'])})
-    cbar = fig.colorbar(cs)
-    # cbar.add_lines(cs2)
-    # cbar.set_ticklabels(['1 s', '1 min', '1 hour', '8 hours', '1 day', '5+ days'])
-    cbar.set_label("runtime [s]")
-    ax.set_ylabel("Number of cores")
-    ax.set_xlabel("Number of firings")
-    ax.set_xticks(range(2, 14, 2))
-    ax.grid(True, axis="both", linewidth=0.3)
-    plt.tight_layout()
-    fig.savefig(plot_name + ".pdf", transparent=True, bbox_inches="tight")
-    fig.savefig(plot_name + ".png", bbox_inches="tight")
-
-
-def plot_3dcolormap(data3d: pd.DataFrame, plot_name="3d_plot"):
-    min_plat = data3d["plat"].min()
-    max_plat = data3d["plat"].max()
-    min_actors = data3d[" actors"].min()
-    max_actors = data3d[" actors"].max()
-    first_min_runtime_in_secs = data3d[" runtime_first"].min()
-    first_max_runtime_in_secs = data3d[" runtime_first"].max()
-    max_agg = data3d.groupby(["plat", " actors"]).max()
-    min_agg = data3d.groupby(["plat", " actors"]).min()
-
-    fig, ax = plt.subplots(
-        1,
-        1,
-        figsize=(img_width_in_inches, img_height_in_inches),
-        subplot_kw={"projection": "3d"},
-    )
-    zvalues = max_agg.reset_index().pivot(
-        index="plat", columns=" actors", values=" runtime"
-    )
-    xvalues, yvalues = np.meshgrid(zvalues.columns.values, zvalues.index.values)
-    surf = ax.plot_surface(xvalues, yvalues, np.log10(zvalues.values / 1000.0))
-    # ax.clabel(surf, levels=surf.levels, inline=True, fontsize=6, fmt={k: v for (k ,v) in zip(surf.levels, ['1 min', '1 hour', '8 hours', '1 day'])})
-    ax.set_ylabel("Number of cores")
-    ax.set_xlabel("Number of actors")
-    ax.set_zlabel("$\log_{{10}}$runtime")
-    ax.grid(True, axis="both", linewidth=0.3)
-    plt.tight_layout()
-    fig.savefig(plot_name + ".pdf", transparent=True, bbox_inches="tight")
-    fig.savefig(plot_name + ".png", bbox_inches="tight")
-
-
 def main():
-    args = parse_args()
     idesyde_data = pd.read_csv("idesyde_benchmark.csv")
     idesyde_scal_data = pd.read_csv("idesyde_scal_benchmark.csv")
-    # desyde_data = pd.read_csv("desyde_benchmark.csv")
-    # if not args.no_quantiles:
-    #     print("-- plotting quantiles --")
-    #     if len(idesyde_data) > 0:
-    #         plot_quantiles(idesyde_data, "idesyde_total_benchmark")
-    #     # if len(desyde_data) > 0:
-    #     #     plot_quantiles(desyde_data, "desyde_total_benchmark")
-    # if not args.no_firsts:
-    #     print("-- plotting firsts --")
-    #     if len(idesyde_data) > 0:
-    #         plot_firsts(idesyde_data, "idesyde_firsts_benchmark")
-        # if len(desyde_data) > 0:
-        #     plot_firsts(desyde_data, "desyde_firsts_benchmark")
+    print("-- plotting complexity --")
+    if len(idesyde_data) > 0:
+        plot_firings(
+            idesyde_data,
+            zCol=" runtime",
+            zColLabel="Time to completion or time-out [s]",
+            isLog=True,
+            timeoutInMillis=1000 * 3600 * 24 * 5,
+            drawTimeoutLine=True,
+            plot_name="idesyde_total",
+            xLabel="Number of actors ($|A|$)"
+        )
     print("-- plotting complexity map --")
     if len(idesyde_data) > 0:
         plot_complexity_barriers(
@@ -336,59 +213,69 @@ def main():
             is_log=True,
             plot_name="idesyde_total_complexity",
         )
-    # if len(desyde_data) > 0:
-    #     plot_complexity_barriers(desyde_data, "desyde_total_complexity")
-    print("-- plotting firsts complexity map --")
     if len(idesyde_data) > 0:
-        plot_complexity_barriers(
-            pd.concat([idesyde_data, idesyde_scal_data]),
-            zCol=" runtime_first",
-            zAxisLabel="Time to first [ms]",
-            # zLevels=[
-            #     1000,
-            #     1000 * 60,
-            #     1000 * 1800,
-            #     1000 * 3600,
-            #     1000 * 3600 * 8
-            # ],
-            # zLabels=[
-            #     "1 sec",
-            #     "1 min",
-            #     "30 mins",
-            #     "1 hour",
-            #     "8 hours"
-            # ],
-            plot_name="idesyde_first_complexity",
+        plot_firings(
+            idesyde_scal_data,
+            zCol=" runtime_last",
+            zColLabel="Time to last solution [s]",
+            isLog=True,
+            xMax=150,
+            drawTimeoutLine=True,
+            plot_name="idesyde_time_to_last",
+            isMax=False
         )
-        # plot_complexity_barriers_firsts(idesyde_data, "idesyde_firsts_complexity")
-    # print("-- plotting colormap for complexity --")
+    # print("-- plotting time-to-last complexity map --")
     # if len(idesyde_data) > 0:
-    #     plot_3dcolormap(idesyde_data, "idesyde_total_complexity_3d")
-    # if len(desyde_data) > 0:
-    #     plot_3dcolormap(desyde_data, "desyde_total_complexity_3d")
-    print("-- plotting meat-time-to-improv complexity map --")
+    #     plot_complexity_barriers(
+    #         idesyde_scal_data,
+    #         zCol=" runtime_last",
+    #         zAxisLabel="Time to last",
+    #         xMax=150,
+    #         plot_name="idesyde_time_to_last_complexity",
+    #     )
+    # print("-- plotting num sols complexity map --")
+    # if len(idesyde_data) > 0:
+    #     plot_complexity_barriers(
+    #         idesyde_scal_data,
+    #         zCol=" nsols",
+    #         zAxisLabel="Number of solutions",
+    #         xMax=150,
+    #         plot_name="idesyde_nsols_complexity",
+    #     )
+    print("-- plotting num sols --")
     if len(idesyde_data) > 0:
-        plot_complexity_barriers(
-            pd.concat([idesyde_data, idesyde_scal_data]),
-            zCol=" mean_time_to_improvement",
-            zAxisLabel="Mean time to improvement [ms]",
-            zLevels=[
-                1000,
-                1000 * 60,
-                1000 * 1800,
-                1000 * 3600,
-                1000 * 3600 * 8
-            ],
-            zLabels=[
-                "1 sec",
-                "1 min",
-                "30 mins",
-                "1 hour",
-                "8 hours"
-            ],
-            is_log=True,
-            plot_name="idesyde_mean_to_improv_complexity",
+        plot_firings(
+            idesyde_scal_data,
+            zCol=" nsols",
+            zColLabel="Number of solutions",
+            zScale=1,
+            xMax=150,
+            plot_name="idesyde_nsols",
         )
+    # print("-- plotting total run complexity map --")
+    # if len(idesyde_data) > 0:
+    #     plot_complexity_barriers(
+    #         idesyde_scal_data,
+    #         zCol=" runtime",
+    #         zAxisLabel="Total runtime [ms]",
+    #         # zLevels=[
+    #         #     1000,
+    #         #     1000 * 60,
+    #         #     1000 * 1800,
+    #         #     1000 * 3600,
+    #         #     1000 * 3600 * 8
+    #         # ],
+    #         # zLabels=[
+    #         #     "1 sec",
+    #         #     "1 min",
+    #         #     "30 mins",
+    #         #     "1 hour",
+    #         #     "8 hours"
+    #         # ],
+    #         # is_log=True,
+    #         xMax=150,
+    #         plot_name="idesyde_total_scal_complexity",
+    #     )
 
 
 if __name__ == "__main__":
