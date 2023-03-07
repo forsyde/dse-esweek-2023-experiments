@@ -12,14 +12,14 @@ from matplotlib.legend_handler import HandlerTuple
 ### Baseline
 img_ratio = 0.8  # golden ratio - 1 is 0.618033988749894
 expected_space_per_y_count = 0.3
-img_width_in_inches = 3.5  # column size of a IEEE 2-column paper
+img_width_in_inches = 5  # column size of a IEEE 2-column paper
 img_height_in_inches = img_width_in_inches * img_ratio
 quantiles_bounds = [0.2, 0.5, 0.8]
 marker_list = ["o", "s"]
 
 ## global style configuration
 mpl.rcParams.update(
-    {"text.usetex": True, "font.family": "Computer Modern Roman", "font.size": 10}
+    {"text.usetex": True, "font.family": "Computer Modern Roman", "font.size": 9}
 )
 
 
@@ -34,6 +34,7 @@ def plot_firings(
     timeoutInMillis=1000 * 30 * 60,
     drawTimeoutLine=False,
     isMax=True,
+    loc="best",
     xLabel="Number of firings ($\sum q_G$)"
 ):
     filtered_data = total_data[total_data[" firings"] <= xMax] if xMax else total_data
@@ -102,7 +103,7 @@ def plot_firings(
     if drawTimeoutLine:
         ax.axhline(y = timeoutInMillis * zScale, color='r', lw=0.4, linestyle="dashdot")
     # save the plot
-    ax.legend(handles, ["$|P| = {0}$".format(plat) for plat in range(total_min_plat, total_max_plat + 1)], handler_map={tuple: HandlerTuple(ndivide=None)}, fontsize=7)
+    ax.legend(handles, ["$|P| = {0}$".format(plat) for plat in range(total_min_plat, total_max_plat + 1)], handler_map={tuple: HandlerTuple(ndivide=None)}, fontsize=7, loc=loc)
     plt.tight_layout()
     fig.savefig(plot_name + ".pdf", transparent=True, bbox_inches="tight")
     # fig.savefig(plot_name + ".png", bbox_inches="tight")
@@ -174,7 +175,7 @@ def plot_complexity_barriers(
 def main():
     idesyde_data = pd.read_csv("idesyde_benchmark.csv")
     idesyde_scal_data = pd.read_csv("idesyde_scal_benchmark.csv")
-    print("-- plotting complexity --")
+    print("-- plotting worst case comp time --")
     if len(idesyde_data) > 0:
         plot_firings(
             idesyde_data,
@@ -184,7 +185,18 @@ def main():
             timeoutInMillis=1000 * 3600 * 24 * 5,
             drawTimeoutLine=True,
             plot_name="idesyde_total",
+            loc="center left",
             xLabel="Number of actors ($|A|$)"
+        )
+    print("-- plotting wrost case num sols --")
+    if len(idesyde_data) > 0:
+        plot_firings(
+            idesyde_data,
+            zCol=" nsols",
+            zColLabel="Number of solutions",
+            zScale=1,
+            xMax=150,
+            plot_name="idesyde_total_nsols",
         )
     print("-- plotting complexity map --")
     if len(idesyde_data) > 0:
@@ -242,7 +254,7 @@ def main():
     #         xMax=150,
     #         plot_name="idesyde_nsols_complexity",
     #     )
-    print("-- plotting num sols --")
+    print("-- plotting average num sols --")
     if len(idesyde_data) > 0:
         plot_firings(
             idesyde_scal_data,

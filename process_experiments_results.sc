@@ -165,6 +165,8 @@ def recompute_idesyde_2(): Unit = {
     StandardOpenOption.TRUNCATE_EXISTING
   )
   var biggestFiringsNonZero = 0
+  var totalScanned = 0
+  var totalScannedInconclusive = 0
   for (
     actors <- generate_experiments.actorRange2;
     svr <- generate_experiments.svrMultiplicationRange2;
@@ -221,15 +223,18 @@ def recompute_idesyde_2(): Unit = {
         StandardOpenOption.WRITE,
         StandardOpenOption.APPEND
       )
+      totalScanned += 1
+      if (intermediateSolutions.isEmpty && firstTime == startingTime) totalScannedInconclusive += 1
     }
   }
   println(s"biggest non zero is ${biggestFiringsNonZero}")
+  println(s"ratio of inconclusive is ${totalScannedInconclusive} / ${totalScanned} = ${totalScannedInconclusive.toDouble / totalScanned.toDouble}")
 }
 
 val solsPattern =
   "nUsedPEs = ([0-9]*), globalInvThroughput = ([0-9]*) / ([0-9]*)".r
 
-private def formatDuration(d: Duration): String = f"${d.getSeconds() / 3600}%01d:${(d.getSeconds() % 3600)/60}%02d:${d.getSeconds() % 60}%02d:${d.getNano() / 1000000}"
+private def formatDuration(d: Duration): String = f"${(d.getSeconds() % 3600)/60}%01d:${d.getSeconds() % 60}%02d:${d.getNano() / 1000000}"
 
 @main
 def recompute_idesyde_3_table(): Unit = {
@@ -273,8 +278,8 @@ def recompute_idesyde_3_table(): Unit = {
       val bestForCores = bestSolutions.minByOption((time, n, l) => (n, l, time)).getOrElse((Duration.ZERO, 0, 0.0))
       val bestForTh = bestSolutions.minByOption((time, n, l) => (l, n, time)).getOrElse((Duration.ZERO, 0, 0.0))
       println(s" & & ${formatDuration(firstSol._1)} & ${formatDuration(bestForCores._1)} & ${formatDuration(bestForTh._1)} & \\\\")
-      println(s" ${combinationsExp1Names(i)}${if (isTimeOut) then "" else "$^*$"} & ${bestSolutions.size} & ${firstSol._2} cores & ${bestForCores._2} cores & ${bestForTh._2} cores & \\\\")
-      println(f" & & ${firstSol._3}%.0f s/iter & ${ bestForCores._3}%.0f s/iter & ${bestForTh._3}%.0f s/iter & \\\\")
+      println(s" ${combinationsExp1Names(i)}${if (isTimeOut) then "" else "$^*$"} & ${bestSolutions.size} & ${firstSol._2} \\glspl{pe} & ${bestForCores._2} \\glspl{pe} & ${bestForTh._2} \\glspl{pe} & \\\\")
+      println(f" & & ${firstSol._3}%.0f & ${ bestForCores._3}%.0f & ${bestForTh._3}%.0f & \\\\")
       println(" & & & & & \\\\")
     }
   }
