@@ -279,7 +279,7 @@ def recompute_idesyde_3_table(): Unit = {
       val bestForTh = bestSolutions.minByOption((time, n, l) => (l, n, time)).getOrElse((Duration.ZERO, 0, 0.0))
       println(s" & & ${formatDuration(firstSol._1)} & ${formatDuration(bestForCores._1)} & ${formatDuration(bestForTh._1)} & \\\\")
       println(s" ${combinationsExp1Names(i)}${if (isTimeOut) then "" else "$^*$"} & ${bestSolutions.size} & ${firstSol._2} ${if (firstSol._2 == 1) then "tile" else "tiles"} & ${bestForCores._2} ${if (bestForCores._2 == 1) then "tile" else "tiles"} & ${bestForTh._2} ${if (bestForTh._2 == 1) then "tile" else "tiles"} & \\\\")
-      println(s" & & ${firstSol._3} & ${ bestForCores._3} & ${bestForTh._3} & \\\\[0.5em]")
+      println(f" & & ${firstSol._3}%.0f & ${ bestForCores._3}%.0f & ${bestForTh._3}%.0f & \\\\[0.5em]")
     }
   }
 }

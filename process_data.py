@@ -186,6 +186,7 @@ def main():
             drawTimeoutLine=True,
             plot_name="idesyde_total",
             loc="center left",
+            xMax=10,
             xLabel="Number of actors ($|A|$)"
         )
     print("-- plotting wrost case num sols --")
@@ -193,9 +194,9 @@ def main():
         plot_firings(
             idesyde_data,
             zCol=" nsols",
-            zColLabel="Number of solutions",
+            zColLabel="Number of implementations",
             zScale=1,
-            xMax=150,
+            xMax=10,
             plot_name="idesyde_total_nsols",
             xLabel="Number of actors ($|A|$)"
         )
@@ -251,7 +252,7 @@ def main():
     #     plot_complexity_barriers(
     #         idesyde_scal_data,
     #         zCol=" nsols",
-    #         zAxisLabel="Number of solutions",
+    #         zAxisLabel="Number of implementations",
     #         xMax=150,
     #         plot_name="idesyde_nsols_complexity",
     #     )
@@ -260,7 +261,7 @@ def main():
         plot_firings(
             idesyde_scal_data,
             zCol=" nsols",
-            zColLabel="Number of solutions",
+            zColLabel="Number of implementations",
             zScale=1,
             xMax=150,
             plot_name="idesyde_nsols",

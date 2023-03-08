@@ -39,7 +39,7 @@ val combinationsExp1 = Seq(
   Seq("g10_3_cycl.sdf.xml")
 )
 
-val actorRange1 = 2 to 20
+val actorRange1 = 2 to 10
 val coreRange1 = 2 to 8
 val svrMultiplicationRange1 = Array(1.0)
 val dataPointsPerTuple = 5
