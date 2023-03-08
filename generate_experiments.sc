@@ -593,7 +593,17 @@ def generate_idesyde_3(cores: Int = 8): Unit = {
     val idesydeFullInput = (combinationFolder / "idesyde_input.fiodl").toNIO
     val idesydePlatform =
       generate_platform.makeTDMASingleBusPlatform(cores, 32L, 1L, 1.0)
+    // make the last core an accelerator which supports only CS
+    idesydePlatform.queryVertex(s"micro_blaze_${cores - 1}").flatMap(InstrumentedProcessingModule.safeCast(_)).ifPresent(ipe => {
+      ipe.setModalInstructionsPerCycle(Map("default" -> Map("CS" -> (1.0).asInstanceOf[java.lang.Double]).asJava).asJava)
+    })
     val apps = comb.map(f => modelHandler.loadModel((sdfsFolder / f).toNIO)).reduce(_.merge(_))
+    // add the HW acc support for CS of JPEG
+    apps.queryVertex("CS_0").flatMap(InstrumentedExecutable.safeCast(_)).ifPresent(iproc => {
+      val cur = iproc.getOperationRequirements()
+      cur.put("hwacc", Map("CS" -> 1388L.asInstanceOf[java.lang.Long]).asJava)
+      iproc.setOperationRequirements(cur)
+    })
     val dseProblem = idesydePlatform.merge(apps)
     os.makeDir.all(combinationFolder)
     modelHandler.writeModel(dseProblem, idesydeFullInput)

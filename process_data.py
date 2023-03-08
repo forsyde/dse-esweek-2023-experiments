@@ -10,9 +10,9 @@ import matplotlib as mpl
 from matplotlib.legend_handler import HandlerTuple
 
 ### Baseline
-img_ratio = 0.8  # golden ratio - 1 is 0.618033988749894
+img_ratio = 1.0  # golden ratio - 1 is 0.618033988749894
 expected_space_per_y_count = 0.3
-img_width_in_inches = 5  # column size of a IEEE 2-column paper
+img_width_in_inches = 3.08  # column size of a IEEE 2-column paper
 img_height_in_inches = img_width_in_inches * img_ratio
 quantiles_bounds = [0.2, 0.5, 0.8]
 marker_list = ["o", "s"]
@@ -197,6 +197,7 @@ def main():
             zScale=1,
             xMax=150,
             plot_name="idesyde_total_nsols",
+            xLabel="Number of actors ($|A|$)"
         )
     print("-- plotting complexity map --")
     if len(idesyde_data) > 0:

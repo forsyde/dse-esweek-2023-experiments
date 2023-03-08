@@ -228,7 +228,7 @@ def recompute_idesyde_2(): Unit = {
     }
   }
   println(s"biggest non zero is ${biggestFiringsNonZero}")
-  println(s"ratio of inconclusive is ${totalScannedInconclusive} / ${totalScanned} = ${totalScannedInconclusive.toDouble / totalScanned.toDouble}")
+  println(s"ratio of inconclusive is 1 - ${totalScannedInconclusive} / ${totalScanned} = 1 - ${totalScannedInconclusive.toDouble / totalScanned.toDouble} = ${1.0 - totalScannedInconclusive.toDouble / totalScanned.toDouble}")
 }
 
 val solsPattern =
