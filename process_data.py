@@ -11,9 +11,9 @@ import matplotlib as mpl
 from matplotlib.legend_handler import HandlerTuple
 
 ### Baseline
-img_ratio = 1.0  # golden ratio - 1 is 0.618033988749894
+img_ratio = 0.95  # golden ratio - 1 is 0.618033988749894
 expected_space_per_y_count = 0.3
-fig_width_in_inches = 2 * 2.93  # column size of a IEEE 2-column paper
+fig_width_in_inches = 2 * 2.7  # column size of a IEEE 2-column paper
 fig_height_in_inches = fig_width_in_inches / 2 * img_ratio
 quantiles_bounds = [0.2, 0.5, 0.8]
 marker_list = ["o", "s"]
