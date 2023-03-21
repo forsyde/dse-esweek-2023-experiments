@@ -17,8 +17,8 @@ With all installed, you first need to generate the experiments:
 And then you can run (in parallel if you have enough resources):
 
     # indirect case studies
-    amm run_experiments evaluation_3_idesyde 
+    amm run_experiments indirect_case_studies 
     # time-out of 5 days (hardness)
-    amm run_experiments evaluation_1_idesyde 
+    amm run_experiments hardness_evaluation 
     # time-out of 30 minutes (anytime)
-    amm run_experiments evaluation_2_idesyde 
+    amm run_experiments anytime_evaluation 

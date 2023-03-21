@@ -16,7 +16,7 @@ val desydeBin = (os.pwd / "desyde").toString()
 val idesydeBin = (os.pwd / "idesyde.jar").toString()
 
 @main
-def evaluation_1_idesyde(): Unit = {
+def hardness_evaluation(): Unit = {
   // if (!Files.exists(idesydeBenchmark)) {
   //   Files.createFile(idesydeBenchmark)
   //   Files.writeString(
@@ -199,7 +199,7 @@ def evaluation_1_desyde(): Unit = {
 }
 
 @main
-def evaluation_2_idesyde(): Unit = {
+def anytime_evaluation(): Unit = {
   // if (!Files.exists(idesydeScalBenchmark)) {
   //   Files.createFile(idesydeScalBenchmark)
   //   Files.writeString(
@@ -248,7 +248,7 @@ def evaluation_2_idesyde(): Unit = {
 }
 
 @main
-def evaluation_3_idesyde(): Unit = {
+def indirect_case_studies(): Unit = {
   for (
     comb <- generate_experiments.combinationsExp1
   ) {
