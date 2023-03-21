@@ -612,7 +612,7 @@ def generate_idesyde_3(cores: Int = 8): Unit = {
 
 @main
 def generate(): Unit = {
-    generate_desyde_1()
+    // generate_desyde_1()
     generate_idesyde_1()
     generate_idesyde_2()
     generate_idesyde_3()

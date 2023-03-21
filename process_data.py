@@ -13,7 +13,7 @@ from matplotlib.legend_handler import HandlerTuple
 ### Baseline
 img_ratio = 0.95  # golden ratio - 1 is 0.618033988749894
 expected_space_per_y_count = 0.3
-fig_width_in_inches = 2 * 2.7  # column size of a IEEE 2-column paper
+fig_width_in_inches = 2 * 2.76  # column size of a IEEE 2-column paper
 fig_height_in_inches = fig_width_in_inches / 2 * img_ratio
 quantiles_bounds = [0.2, 0.5, 0.8]
 marker_list = ["o", "s"]
@@ -102,7 +102,7 @@ def plot_firings(
             #         series_max[zCol] * zScales[j],
             #         linestyle=lineStyle,
             #         lw=0.8,
-            #         color=mpl.colormaps["viridis"](1.0 - float(i) / num_plat),
+            #         color=mpl.colormaps["plasma"](1.0 - float(i) / num_plat),
             #         label="$|P| = {0}$".format(plat) if lineStyle else None,
             #         marker="None",
             #     )
@@ -110,21 +110,21 @@ def plot_firings(
             p1 = ax[0][j].scatter(
                 series_max_completed[" firings"],
                 series_max_completed[zc] * zScales[j],
-                color=mpl.colormaps["viridis"](1.0 - float(i) / num_plat),
+                color=mpl.colormaps["plasma"](1.0 - float(i) / num_plat),
                 marker=".",
             )
             p2 = ax[0][j].scatter(
                 series_max_timed_out[" firings"],
                 series_max_timed_out[zc] * zScales[j],
                 12.0,
-                color=mpl.colormaps["viridis"](1.0 - float(i) / num_plat),
+                color=mpl.colormaps["plasma"](1.0 - float(i) / num_plat),
                 marker="^",
             )
             p3 = ax[0][j].scatter(
                 series_max_timed_out_no_sol[" firings"],
                 series_max_timed_out_no_sol[zc] * zScales[j],
                 12.0,
-                color=mpl.colormaps["viridis"](1.0 - float(i) / num_plat),
+                color=mpl.colormaps["plasma"](1.0 - float(i) / num_plat),
                 marker="x",
             )
             if j == 0:
