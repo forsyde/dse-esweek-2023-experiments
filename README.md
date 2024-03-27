@@ -1,3 +1,7 @@
+# Archived
+
+Since 2022-03-27, this repository is archived as its main scripts and source files have been moved to the [IDeSyDe](https://github.com/forsyde/IDeSyDe) repo in its examples and benchmarks folder. Any further development of the scripts continues there.
+
 # Paper 45 experiments
 
 1. The core files are the scala ones, ending with `*.sc`. 
